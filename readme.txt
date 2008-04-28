@@ -1,7 +1,7 @@
 === Simply Exclude ===
 Contributors: Paul Menard
 Donate link: http://www.codehooligans.com
-Tags: categories, tags, page, exclude, include, is_front, is_archive, is_search, is_feed
+Tags: admin, posts, pages, categories, tags, exclude, include, is_front, is_archive, is_search, is_feed
 Requires at least: 2.3
 Tested up to: 2.5
 Stable tag: 1.2
