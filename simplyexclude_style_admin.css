@@ -1,0 +1,49 @@
+#se_admin_nav ul li {
+	display: inline;
+	text-decoration: none;
+	padding-right: 4px;
+	margin: 0px;
+}
+
+form#cat_exclusion table tbody tr td.cat-id,
+form#tag_exclusion table tbody tr td.tag-id,
+form#page_exclusion table tbody tr td.page-id {
+	text-align: center;
+	width: 10%;
+	padding: 8px 5px;
+}
+
+form#cat_exclusion table thead tr th.cat-name,
+form#cat_exclusion table tbody tr td.cat-name,
+form#tag_exclusion table thead tr th.tag-name,
+form#tag_exclusion table tbody tr td.tag-name,
+form#page_exclusion table thead tr th.page-name,
+form#page_exclusion table tbody tr td.page-name {
+	text-align: left;
+	padding-left: 20px;
+	width: 40%;
+}
+
+form#cat_exclusion table tbody tr td.cat-action,
+form#tag_exclusion table tbody tr td.tag-action,
+form#page_exclusion table tbody tr td.page-action {
+	text-align: center;
+}
+
+form#cat_exclusion table tbody tr td.cat-action label,
+form#tag_exclusion table tbody tr td.tag-action label,
+form#page_exclusion table tbody tr td.page-action label {
+	padding: 0;
+	margin: 0;
+}
+
+form#cat_exclusion table tbody tr td.cat-action input,
+form#tag_exclusion table tbody tr td.tag-action input {
+	margin-right: 15px;
+	margin-left: -5px;
+}
+
+form#page_exclusion table tbody tr td.page-action input {
+	margin-right: 15px;
+	margin-left: -5px;
+}
