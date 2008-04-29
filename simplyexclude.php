@@ -595,6 +595,9 @@ class SimplyExclude
 
 	function se_show_pages_form()
 	{
+		$this->display_instructions('pages');
+		return;
+
 		$this->se_load_pages();
 		if ($this->pages)
 		{
@@ -819,6 +822,7 @@ class SimplyExclude
 		}
 		else if ($type == "pages")
 		{
+		/*
 			?>
 			<p>Set the checkbox to exclude the respective page from the action</p>
 			<p>So what is the difference between Exclusion and Inclusion?<br />
@@ -828,20 +832,23 @@ class SimplyExclude
 					WP actions. For example you want only certain Pages displayed from a Search. Note with Include only those checked items will be included in the 
 					WP action. And as new Pages are added they will need to be checked here. </p>
 			<?php
-			
+		*/
+		?>
+		<p>This is a placeholder section for Pages Exclusion. Since WordPress does not yet include Pages in searches this section is pointless. From various sources version 2.6 of WordPress should include native support for including Pages in search results. Look for changes to this plugin shortly after that.</p>
+		<?php	
 		}
 	}
 	
 	function add_page_exclude_sidebar_dbx()
 	{
-		global $post, $wp_version;
+		global $post;
 		
 		$action_key = "is_search";
 		
 		if ($this->se_cfg['pages'][$action_key][$post->ID] == "on")
 			$exclude_page = "yes";
 
-		if ($wp_version < 2.5)
+		if ($this->wp_version < 2.5)
 		{
 			?>
 			<fieldset id="use_ssl" class="dbx-box">
@@ -851,7 +858,7 @@ class SimplyExclude
 		}
 		?>
 				<p><?php
-				if ($wp_version < 2.5)
+				if ($this->wp_version >= 2.5)
 				{
 					?>Select this option 'Yes' to exclude this page from Searches or visit <a href="<?php echo get_option('siteurl') ?>/wp-admin/edit.php?page=simplyexclude&amp;se_admin[action]=edit_pages">Simply Exclude</a> Settings page to mass edit all Pages.<br /><?php
 				} ?>
@@ -861,7 +868,7 @@ class SimplyExclude
 					</select>
 				</p>
 		<?php 
-		if ($wp_version < 2.5)
+		if ($this->wp_version < 2.5)
 		{
 			?>
 				</div>
