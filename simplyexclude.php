@@ -595,8 +595,8 @@ class SimplyExclude
 
 	function se_show_pages_form()
 	{
-		$this->display_instructions('pages');
-		return;
+		//$this->display_instructions('pages');
+		//return;
 
 		$this->se_load_pages();
 		if ($this->pages)
@@ -705,6 +705,57 @@ class SimplyExclude
 		}
 	}
 	
+	function get_pages_list($sep, $ids)
+	{		
+		foreach($ids as $id_key => $id_val)
+		{
+			if (strlen($id_list))
+				$id_list .= ",";
+			$id_list .= $id_key;
+		}
+		return $id_list;
+		
+	}
+	
+	// The following 2 function we taken from the wonderful SearchEverything plugin. 
+	// http://wordpress.org/extend/plugins/search-everything/
+	function SE4_exclude_posts($where) {
+		global $wp_query;
+		if (!empty($wp_query->query_vars['s'])) 
+		{
+			$action_key = "is_search";
+			$excl_list = $this->get_pages_list(',', $this->se_cfg['pages'][$action_key]);
+
+			//$excl_list = implode(',', explode(',', trim($this->options['SE4_exclude_posts_list'])));
+			
+			$where = str_replace('"', '\'', $where);
+			$where = 'AND ('.substr($where, strpos($where, 'AND')+3).' )';
+			if ($this->se_cfg['pages']['actions'][$action_key] == 'e')
+				$where .= ' AND (ID NOT IN ( '.$excl_list.' ))';
+			else
+				$where .= ' AND (ID IN ( '.$excl_list.' ))';			
+		}
+		return $where;
+	}
+
+	//search pages (except password protected pages provided by loops)
+	function SE4_search_pages($where) {
+		global $wp_query;
+
+		if (!empty($wp_query->query_vars['s'])) {
+
+			$where = str_replace('"', '\'', $where);
+			if ('true' == $this->options['SE4_approved_pages_only']) {
+				$where = str_replace('post_type = \'post\' AND ', 'post_password = \'\' AND ', $where);
+			}
+			else { // < v 2.1
+				$where = str_replace('post_type = \'post\' AND ', '', $where);
+			}
+		}
+		return $where;
+	}
+	
+	
 
 	// END CONFIG FUNCTIONS
 	/////////////////////////////////////////////////////////////////
@@ -754,11 +805,16 @@ class SimplyExclude
 				}
 			}
 		}
+		
 		foreach ($this->default_IsActions['pages'] as $action_key => $action_val)
 		{
 			//echo "action_key=[". $action_key. "]<br />";
 			if ($query->{$action_key})
 			{
+				add_filter('posts_where', array(&$this, 'SE4_search_pages'));
+				add_filter('posts_where', array(&$this, 'SE4_exclude_posts'));
+
+/*
 				$pages_list;
 				if (isset($this->se_cfg['pages'][$action_key]))
 				{
@@ -770,9 +826,10 @@ class SimplyExclude
 				}
 				if (strlen($pages_list))
 					$query->set('page', $pages_list);
+*/
 			}
 		}
-		
+		//echo "query after<pre>"; print_r($query); echo "</pre>";
 		return $query;
 	}
 
@@ -822,20 +879,26 @@ class SimplyExclude
 		}
 		else if ($type == "pages")
 		{
-		/*
+		
 			?>
 			<p>Set the checkbox to exclude the respective page from the action</p>
 			<p>So what is the difference between Exclusion and Inclusion?<br />
 				<strong>Exclude</strong>: Select this action to exclude Pages from WP 
-					action. For example you may wish to exclude a Page from Searches.<br />
+					action. For example you may wish to exclude a Page from Searches. Most common use.<br />
 				<strong>Include</strong>: Select the Page you wish to be included for certain 
 					WP actions. For example you want only certain Pages displayed from a Search. Note with Include only those checked items will be included in the 
 					WP action. And as new Pages are added they will need to be checked here. </p>
+
+			<p><strong>Note</strong>: The Pages section of this plugin is at best experimental until Page Search is included 
+				by default into WordPress core. Also, you might consider using the SearchEverything plugin which offers much more
+				 functionality on Searched. http://wordpress.org/extend/plugins/search-everything/</p>
 			<?php
-		*/
+		
+		/*
 		?>
 		<p>This is a placeholder section for Pages Exclusion. Since WordPress does not yet include Pages in searches this section is pointless. From various sources version 2.6 of WordPress should include native support for including Pages in search results. Look for changes to this plugin shortly after that.</p>
 		<?php	
+		*/
 		}
 	}
 	
