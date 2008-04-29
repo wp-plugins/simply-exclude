@@ -29,8 +29,12 @@ class SimplyExclude
 		global $wp_version;
 		$this->wp_version = $wp_version;
 		
-		$this->options_key	= "simplyexclude";
+		$this->_admin_menu_label	= "Simply Exclude";
+		$this->options_key			= "simplyexclude";
+
 		$this->se_load_config();
+
+		add_action('admin_menu', array(&$this,'admin_init_proc'));
 
 		// Add our own admin menu
 		add_action('admin_menu', array(&$this,'se_add_nav'));
@@ -44,9 +48,19 @@ class SimplyExclude
 		// Used to limit the categories displayed on the home page. Simple
 		add_filter('pre_get_posts', array(&$this,'se_filters'));
 		
-		add_filter('dbx_page_sidebar', array(&$this,'add_page_exclude_sidebar_dbx'));
 		add_action('save_post', array(&$this,'save_page_exclude_answer'));		
 	}
+
+	function admin_init_proc()
+	{
+		if (function_exists('add_meta_box')) {
+			add_meta_box($this->_options_key, $this->_admin_menu_label, array(&$this,'add_page_exclude_sidebar_dbx'), 'page');
+		}
+		else { 
+			add_filter('dbx_page_sidebar', array(&$this,'add_page_exclude_sidebar_dbx'));
+		}
+	}
+
 
 	function se_load_config()
 	{
@@ -816,25 +830,40 @@ class SimplyExclude
 	
 	function add_page_exclude_sidebar_dbx()
 	{
-		global $post;
+		global $post, $wp_version;
 		
 		$action_key = "is_search";
 		
 		if ($this->se_cfg['pages'][$action_key][$post->ID] == "on")
 			$exclude_page = "yes";
+
+		if ($wp_version < 2.5)
+		{
+			?>
+			<fieldset id="use_ssl" class="dbx-box">
+				<h3 class="dbx-handle"><?php _e('Exclude from Search?') ?></h3> 
+				<div class="dbx-content">
+			<?php
+		}
 		?>
-		<fieldset id="use_ssl" class="dbx-box">
-			<h3 class="dbx-handle"><?php _e('Exclude from Search?') ?></h3> 
-			<div class="dbx-content">
-				<p>
+				<p><?php
+				if ($wp_version < 2.5)
+				{
+					?>Select this option 'Yes' to exclude this page from Searches or visit <a href="<?php echo get_option('siteurl') ?>/wp-admin/edit.php?page=simplyexclude&amp;se_admin[action]=edit_pages">Simply Exclude</a> Settings page to mass edit all Pages.<br /><?php
+				} ?>
 					<select name="se_page_exclude">
 						<option value='No' selected><?php echo _e('No'); ?></option>
 						<option value='Yes' <?php if ($exclude_page == "yes") echo "selected"; ?>><?php _e('Yes'); ?></option>
 					</select>
 				</p>
-			</div>
-		</fieldset>
-		<?php
+		<?php 
+		if ($wp_version < 2.5)
+		{
+			?>
+				</div>
+			</fieldset>
+			<?php
+		}
 	}
 	
 
