@@ -190,7 +190,7 @@ class SimplyExclude
 	function se_add_nav() 
 	{
     	// Add a new menu under Manage:
-    	add_management_page('Simply Exclude', 'Simply Exclude', 8, 
+    	add_options_page('Simply Exclude', 'Simply Exclude', 8, 
 			$this->options_key, array(&$this, 'se_manage_page'));
 	}
 
@@ -753,13 +753,17 @@ class SimplyExclude
 		}
 		foreach ($this->default_IsActions['pages'] as $action_key => $action_val)
 		{
+			//echo "action_key=[". $action_key. "]<br />";
 			if ($query->{$action_key})
 			{
-				$pagess_list;
+				$pages_list;
 				if (isset($this->se_cfg['pages'][$action_key]))
 				{
+					//echo "this->se_cfg['pages'][$action_key]=[". $this->se_cfg['pages'][$action_key]. "]<br />";
+					
 					$pages_list = $this->se_listify_ids($this->se_cfg['pages']['actions'][$action_key], 
 														$this->se_cfg['pages'][$action_key]);
+					//echo "pages_list=[". $pages_list."]<br />";
 				}
 				if (strlen($pages_list))
 					$query->set('page', $pages_list);
@@ -805,10 +809,10 @@ class SimplyExclude
 			?>
 			<p>Set the checkbox to exclude the respective page from the action</p>
 			<p>So what is the difference between Exclusion and Inclusion?<br />
-				<strong>Exclude</strong>: Select this action to exclude Categories from WP 
-					action. For example you may wish to exclude the Category 'Blogroll' from Searches.<br />
-				<strong>Include</strong>: Select the Categories you wish to be included for certain 
-					WP actions. For example you want only a certain category displayed on the home 
+				<strong>Exclude</strong>: Select this action to exclude Tags from WP 
+					action. For example you may wish to exclude the Tag 'Blogroll' from Searches.<br />
+				<strong>Include</strong>: Select the Tag you wish to be included for certain 
+					WP actions. For example you want only a certain tag displayed on the home 
 					page. Note that with Include only those checked items will be included in the 
 					WP action. </p>
 			<?php
