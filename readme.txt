@@ -30,7 +30,7 @@ is_feed - When a Feed is viewed/requested.
 
 Well you need to be careful when excluding both categories and tags. Since a post can be associated with both there is potential that you have excluded all your posts because they are either members of excluded categories or members or excluded tags. 
 
-= Why doesn't the plugin auto-update itself?
+= Why doesn't the plugin auto-update itself? =
 
 I've not added that feature. A minor version coming soon. 
 
