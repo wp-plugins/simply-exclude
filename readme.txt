@@ -21,7 +21,7 @@ is_feed - When a Feed is viewed/requested.
 
 1. Upload the extracted plugin folder and contained files to your `/wp-content/plugins/` directory
 2. Activate the plugin through the 'Plugins' menu in WordPress
-3. Navigate to Settings -> Simply Exclude (Options -> Simply Exclude is pre 2.5).
+3. Navigate to Settings -> Simply Exclude (Options -> Simply Exclude in pre 2.5).
 4. Once on the plugin admin page you should see navigation links at the top: Manage Categories, Manage Tags, Manage Pages.On each of these page you can selectively exclude/include the cat/tag/page for the given action is_front/is_archive/is_feed/is_search. 
 
 == Frequently Asked Questions ==
