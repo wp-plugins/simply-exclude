@@ -380,6 +380,10 @@ class SimplyExclude
 			</form>
 			<?php
 		}
+		else
+		{
+			?><p>You don't have any Categories defined.</p><?php
+		}
 	}
 	
 	function se_show_cat_item_row($cat_info, $class)
@@ -521,6 +525,10 @@ class SimplyExclude
 				</p></div>				
 			</form>
 			<?php
+		}
+		else
+		{
+			?><p>You don't have any Tags defined.</p><?php
 		}
 	}
 	
@@ -672,6 +680,11 @@ class SimplyExclude
 			</form>
 			<?php
 		}
+		else
+		{
+			?><p>You don't have any Pages.</p><?php
+		}
+		
 	}
 
 	function se_show_page_item_row($page_info, $class = '')
@@ -721,7 +734,8 @@ class SimplyExclude
 	// http://wordpress.org/extend/plugins/search-everything/
 	function SE4_exclude_posts($where) {
 		global $wp_query;
-		if (!empty($wp_query->query_vars['s'])) 
+		if ((!empty($wp_query->query_vars['s'])) 
+		 && (count($this->se_cfg['pages'][$action_key]) > 0))
 		{
 			$action_key = "is_search";
 			$excl_list = $this->get_pages_list(',', $this->se_cfg['pages'][$action_key]);
@@ -764,20 +778,27 @@ class SimplyExclude
 	function se_filters($query) 
 	{
 		//echo "query before<pre>"; print_r($query); echo "</pre>";
-		
-		foreach ($this->default_IsActions['cats'] as $action_key => $action_val)
+		if (count($this->default_IsActions['cats']) > 0)
 		{
-			if ($query->{$action_key})
+			foreach ($this->default_IsActions['cats'] as $action_key => $action_val)
 			{
-				if (isset($this->se_cfg['cats'][$action_key]))
+				$cats_list = "";
+				if ($query->{$action_key})
 				{
-					$cats_list = $this->se_listify_ids( $this->se_cfg['cats']['actions'][$action_key],
-														$this->se_cfg['cats'][$action_key]);
+					if (isset($this->se_cfg['cats'][$action_key]))
+					{
+						if (count($this->se_cfg['cats'][$action_key]))
+						{
+							$cats_list = $this->se_listify_ids( $this->se_cfg['cats']['actions'][$action_key],
+															$this->se_cfg['cats'][$action_key]);
+						}
+					}
+					if (strlen($cats_list))
+						$query->set('cat', $cats_list);
 				}
-				if (strlen($cats_list))
-					$query->set('cat', $cats_list);
 			}
 		}
+
 		if ($this->wp_version >= 2.3)
 		{
 			foreach ($this->default_IsActions['tags'] as $action_key => $action_val)
@@ -786,21 +807,26 @@ class SimplyExclude
 				{
 					if (isset($this->se_cfg['tags'][$action_key]))
 					{
-						$array_list = array();
-						foreach($this->se_cfg['tags'][$action_key] as $key => $val)
+						if (isset($tag_array_list))
+							unset($tag_array_list);
+							
+						$tag_array_list = array();
+						if (count($this->se_cfg['tags'][$action_key]) > 0)
 						{
-							$array_list[] = $key; 
-						}
+							foreach($this->se_cfg['tags'][$action_key] as $key => $val)
+							{
+								$tag_array_list[] = $key; 
+							}
 
-						if ($this->se_cfg['tags']['actions'][$action_key] == "e")
-						{
-							$query->set('tag__not_in', $array_list);
+							if ($this->se_cfg['tags']['actions'][$action_key] == "e")
+							{
+								$query->set('tag__not_in', $tag_array_list);
+							}
+							else
+							{
+								$query->set('tag__in', $tag_array_list);
+							}
 						}
-						else
-						{
-							$query->set('tag__in', $array_list);
-						}
-
 					}
 				}
 			}
