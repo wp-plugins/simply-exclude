@@ -39,8 +39,8 @@ I've not added that feature. A minor version coming soon.
 None
 
 == Version Histroy == 
-Revision history
-1.0 - 2007-11-20: Initial release
-1.1 - 2008-12-15: Added logic to work with WP version greater than 2.2
-1.5 - 20008-04-27 Fixed display issues. Changes 'List' to 'Archive'. Added tags inclusion/exclusion login. Works only with WP 2.3 and greater.
-1.6 - 2008-05-22 Fixed various items. Added format display for Categories and Pages to reveal hierarchy, Disable plugin functions when searching in admin. This also corrected a display exclusion bug when showing categories and pages. 
+<p>Revision history<br />
+1.0 - 2007-11-20: Initial release<br />
+1.1 - 2008-12-15: Added logic to work with WP version greater than 2.2<br />
+1.5 - 20008-04-27 Fixed display issues. Changes 'List' to 'Archive'. Added tags inclusion/exclusion login. Works only with WP 2.3 and greater.<br />
+1.6 - 2008-05-22 Fixed various items. Added format display for Categories and Pages to reveal hierarchy, Disable plugin functions when searching in admin. This also corrected a display exclusion bug when showing categories and pages. </p>
