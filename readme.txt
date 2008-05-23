@@ -4,7 +4,7 @@ Donate link: http://www.codehooligans.com
 Tags: admin, posts, pages, categories, tags, exclude, include, is_front, is_archive, is_search, is_feed
 Requires at least: 2.3
 Tested up to: 2.5
-Stable tag: 1.5
+Stable tag: 1.6
 
 == Description ==
 
@@ -37,3 +37,10 @@ I've not added that feature. A minor version coming soon.
 == Screenshots ==
 
 None
+
+== Version Histroy == 
+Revision history
+1.0 - 2007-11-20: Initial release
+1.1 - 2008-12-15: Added logic to work with WP version greater than 2.2
+1.5 - 20008-04-27 Fixed display issues. Changes 'List' to 'Archive'. Added tags inclusion/exclusion login. Works only with WP 2.3 and greater.
+1.6 - 2008-05-22 Fixed various items. Added format display for Categories and Pages to reveal hierarchy, Disable plugin functions when searching in admin. This also corrected a display exclusion bug when showing categories and pages. 

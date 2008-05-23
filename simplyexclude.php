@@ -4,13 +4,15 @@ Plugin Name: Simply Exclude
 Plugin URI: http://www.codehooligans.com/2008/04/27/simply-exclude-plugin/
 Description: Provides an interface to selectively exclude/include categories, tags and page from the 4 actions used by WordPress. is_front, is_archive, is_search, is_feed.
 Author: Paul Menard
-Version: 1.5
+Version: 1.6
 Author URI: http://www.codehooligans.com
 
 Revision history
 1.0 - 2007-11-20: Initial release
 1.1 - 2008-12-15: Added logic to work with WP version greater than 2.2
 1.5 - 20008-04-27 Fixed display issues. Changes 'List' to 'Archive'. Added tags inclusion/exclusion login. Works only with WP 2.3 and greater.
+1.6 - 2008-05-22 Fixed various items. Added format display for Categories and Pages to reveal heirarchy, Disable plugin functions when searching in admin. This also corrected a display exclusion bug when showing categories and pages. 
+
 */
 
 class SimplyExclude
@@ -24,10 +26,13 @@ class SimplyExclude
 	
 	var $wp_version;
 	
+	var $in_admin;
+	
 	function SimplyExclude()
 	{
 		global $wp_version;
 		$this->wp_version = $wp_version;
+		$this->in_admin = false;
 		
 		$this->_admin_menu_label	= "Simply Exclude";
 		$this->options_key			= "simplyexclude";
@@ -49,10 +54,22 @@ class SimplyExclude
 		add_filter('pre_get_posts', array(&$this,'se_filters'));
 		
 		add_action('save_post', array(&$this,'save_page_exclude_answer'));		
+
+		add_filter('posts_request', array(&$this,'posts_request_proc'));
+	}
+
+
+	function posts_request_proc($request)
+	{
+		//echo "request=[". $request. "]<br />";
+		return $request;
 	}
 
 	function admin_init_proc()
 	{
+		// Means we are in the wp-admin backend and not running from the front site end. 
+		$this->in_admin = true;
+		
 		if (function_exists('add_meta_box')) {
 			add_meta_box($this->_options_key, $this->_admin_menu_label, array(&$this,'add_page_exclude_sidebar_dbx'), 'page');
 		}
@@ -211,15 +228,17 @@ class SimplyExclude
 
 	function se_manage_page()
 	{
-		$this->se_display_navigation();
+		if (isset($_REQUEST['se_admin']))
+			$se_admin = $_REQUEST['se_admin'];
+		else
+			$se_admin['action'] = 'edit_categories';
+
+		$this->se_display_navigation($se_admin);
 
 		?>
 		<div class="wrap">
 		<?php
 
-			if (isset($_REQUEST['se_admin']))
-				$se_admin = $_REQUEST['se_admin'];
-	
 			switch ($se_admin['action'])
 			{
 				case 'edit_pages':
@@ -245,26 +264,40 @@ class SimplyExclude
 	}
 	
 	
-	function se_display_navigation()
+	function se_display_navigation($se_admin)
 	{
-		
 		?>
 		<div id="se_admin_nav">
 			<ul>
 				<li><a href="?page=<?php 
 					echo $this->options_key ?>&amp;se_admin[action]=edit_categories"
-					title="Manage Category Exclusions">Manage Categories</a></li>
+					<?php
+					if (($se_admin['action'] == 'edit_categories')
+					 || ($se_admin['action'] == 'save_categories'))
+						echo 'class="current"';
+					?>
+ 					title="Manage Category Exclusions">Manage Categories</a></li>
 				<?php
 					if ($this->wp_version >= 2.3)
 					{
 						?>
 						<li><a href="?page=<?php 
 							echo $this->options_key ?>&amp;se_admin[action]=edit_tags"
+							<?php
+							if (($se_admin['action'] == 'edit_tags')
+							 || ($se_admin['action'] == 'save_tags'))
+								echo 'class="current"';
+							?>
 							title="Manage Tag Exclusions">Manage Tags</a></li><?php
 					}
 				?>						
 				<li><a href="?page=<?php 
 					echo $this->options_key ?>&amp;se_admin[action]=edit_pages"
+					<?php
+					if (($se_admin['action'] == 'edit_pages')
+					 || ($se_admin['action'] == 'save_pages'))
+						echo 'class="current"';
+					?>
 					title="Manage Page Exclusions">Manage Pages</a></li>
 			</ul>
 		</div>
@@ -300,12 +333,27 @@ class SimplyExclude
 		global $wpdb;
 		if (!$this->categories)
 		{
-			//$this->categories = $wpdb->get_results("SELECT cat_ID, cat_name 
-			//						FROM $wpdb->categories ORDER BY cat_name");
-										
-			$this->categories = get_categories();			
+			$this->categories = get_categories('hide_empty=0&orderby=name&order=ASC');
 		}
 	}
+	
+	
+	function get_cat_parent_tree_array($cat_id=0, $level=0)
+	{
+		$cat_info = get_category($cat_id);
+		
+		$parent_array = array();
+		$parent_array[$level] = $cat_info;
+
+		if (intval($cat_info->parent) > 0)
+		{
+			$cat_array_tmp = $this->get_cat_parent_tree_array($cat_info->parent, $level+1);
+			if ($cat_array_tmp)
+				$parent_array = array_merge($parent_array, $cat_array_tmp);
+		}
+		return $parent_array;
+	}
+	
 	
 	function se_show_categories_form()
 	{
@@ -318,12 +366,12 @@ class SimplyExclude
 				action="?page=<?php 
 					echo $this->options_key ?>&amp;se_admin[action]=save_categories" method="post">
 
-				<table  width="80%" cellpadding="3" cellspacing="3" border="0">
+				<table class="widefat" width="80%" cellpadding="0" cellspacing="2" border="0">
 				<thead>
 		        <tr>
-		        	<th><?php _e('Action Name') ?></th>
-		        	<th><?php _e('Description ') ?></th>
-		        	<th><?php _e('Inclusion/Exclusion') ?></th>
+		        	<th class="action"><?php _e('Action Name') ?></th>
+		        	<th class="description"><?php _e('Description ') ?></th>
+		        	<th class="inc-excl"><?php _e('Inclusion/Exclusion') ?></th>
 		        </tr>
 				</thead>
 				<tbody>
@@ -333,9 +381,9 @@ class SimplyExclude
 					$class = ('alternate' == $class) ? '' : 'alternate';
 					?>
 					<tr <?php if (strlen($class)) echo "class='".$class."'" ?>>
-						<td><?php echo $action_val['name'] ?></td>
-						<td><?php echo $action_val['description'] ?></td>
-						<td>
+						<td class="action"><?php echo $action_val['name'] ?></td>
+						<td class="description"><?php echo $action_val['description'] ?></td>
+						<td class="inc-excl">
 							<input type="radio" 
 								name="se_admin[cats][actions][<?php echo $action_key ?>]" value="i" 
 								<?php if ($this->se_cfg['cats']['actions'][$action_key] == 'i') 
@@ -352,7 +400,7 @@ class SimplyExclude
 				</tbody>
 				</table>
 				<br />
-				<table  width="80%" cellpadding="3" cellspacing="3" border="0">
+				<table class="widefat" width="80%" cellpadding="0" cellspacing="2" border="0">
 				<thead>
 		        <tr>
 		        	<th class="cat-id" scope="col"><?php _e('ID') ?></th>
@@ -369,9 +417,11 @@ class SimplyExclude
 					}
 				?>		
 				<tr>
-					<td>
-						<div style="float:right;"><p class="submit"><input type="hidden" name="action" value="editcatvis" /><input type="submit" name="submit" value="<?php _e('Save Changes &raquo;') ?>" />
-						
+					<td colspan="3">
+						<p class="submit">
+							<input type="hidden" name="action" value="editcatvis" />
+							<input type="submit" name="submit"  value="<?php _e('Save Changes &raquo;') ?>" />
+						</p>
 					</td>
 				</tr>
 				</tbody>
@@ -388,10 +438,21 @@ class SimplyExclude
 	
 	function se_show_cat_item_row($cat_info, $class)
 	{
+		$cat_parents = $this->get_cat_parent_tree_array($cat_info->cat_ID, 0);
+		//echo "cat_parents<pre>"; print_r($cat_parents); echo "</pre>";
+		$level_spacer = "";
+		foreach($cat_parents as $cat_parent)
+		{
+			if ($cat_parent->cat_ID == $cat_info->cat_ID)
+				continue;
+				
+			$level_spacer .= "&ndash;";
+		}
+		
 		?>
 		<tr <?php if (strlen($class)) echo "class='".$class."'" ?>>
 			<td class="cat-id"><?php echo $cat_info->cat_ID ?></td>
-			<td class="cat-name"><?php echo $cat_info->cat_name ?></td>
+			<td class="cat-name"><?php echo $level_spacer . $cat_info->cat_name ?></td>
 			<td class="cat-action"><?php $this->se_display_cat_action_row($cat_info->cat_ID) ?></td>
 		</tr>
 		<?php
@@ -448,7 +509,7 @@ class SimplyExclude
 		global $wpdb;
 		if (!$this->tags)
 		{
-			$this->tags = get_tags();			
+			$this->tags = get_tags('hide_empty=0&orderby=name&order=ASC');			
 		}
 	}
 	
@@ -464,12 +525,12 @@ class SimplyExclude
 				action="?page=<?php 
 					echo $this->options_key ?>&amp;se_admin[action]=save_tags" method="post">
 
-				<table  width="80%" cellpadding="3" cellspacing="3" border="0">
+				<table class="widefat" width="80%" cellpadding="3" cellspacing="3" border="0">
 				<thead>
 		        <tr>
-		        	<th><?php _e('Action Name') ?></th>
-		        	<th><?php _e('Description ') ?></th>
-		        	<th><?php _e('Inclusion/Exclusion') ?></th>
+		        	<th class="action"><?php _e('Action Name') ?></th>
+		        	<th class="description"><?php _e('Description ') ?></th>
+		        	<th class="inc-excl"><?php _e('Inclusion/Exclusion') ?></th>
 		        </tr>
 				</thead>
 				<tbody>
@@ -479,9 +540,9 @@ class SimplyExclude
 					$class = ('alternate' == $class) ? '' : 'alternate';
 					?>
 					<tr <?php if (strlen($class)) echo "class='".$class."'" ?>>
-						<td><?php echo $action_val['name'] ?></td>
-						<td><?php echo $action_val['description'] ?></td>
-						<td>
+						<td class="action"><?php echo $action_val['name'] ?></td>
+						<td class="description"><?php echo $action_val['description'] ?></td>
+						<td class="inc-excl">
 							<input type="radio" 
 								name="se_admin[tags][actions][<?php echo $action_key ?>]" value="i" 
 								<?php if ($this->se_cfg['tags']['actions'][$action_key] == 'i') 
@@ -498,7 +559,7 @@ class SimplyExclude
 				</tbody>
 				</table>
 				<br />
-				<table  width="80%" cellpadding="3" cellspacing="3" border="0">
+				<table class="widefat" width="80%" cellpadding="3" cellspacing="3" border="0">
 				<thead>
 		        <tr>
 		        	<th class="cat-id" scope="col"><?php _e('ID') ?></th>
@@ -515,9 +576,11 @@ class SimplyExclude
 					}
 				?>		
 				<tr>
-					<td>
-						<div style="float:right;"><p class="submit"><input type="hidden" name="action" value="editcatvis" /><input type="submit" name="submit" value="<?php _e('Save Changes &raquo;') ?>" />
-						
+					<td colspan="3">
+						<p class="submit">
+							<input type="hidden" name="action" value="editcatvis" />
+							<input type="submit" name="submit"  value="<?php _e('Save Changes &raquo;') ?>" />
+						</p>
 					</td>
 				</tr>
 				</tbody>
@@ -594,12 +657,26 @@ class SimplyExclude
 	{
 		global $wpdb;
 		if (!$this->pages)
-			$this->pages = $wpdb->get_results("SELECT ID, post_title 
-							FROM $wpdb->posts 
-							WHERE post_type='page'
-							AND post_status='publish'
-							ORDER BY post_title");
+			$this->pages = get_pages();
 	}
+		
+	function get_page_parent_tree_array($page_id=0, $level=0)
+	{
+		$page_info = get_page($page_id);
+
+		$parent_array = array();
+		$parent_array[$level] = $page_info;
+
+		if (intval($page_info->post_parent) > 0)
+		{
+			$page_array_tmp = $this->get_page_parent_tree_array($page_info->post_parent, $level+1);
+			if ($page_array_tmp)
+				$parent_array = array_merge($parent_array, $page_array_tmp);
+		}
+		return $parent_array;
+	}
+	
+	
 
 	function se_show_pages_form()
 	{
@@ -614,12 +691,12 @@ class SimplyExclude
 			<form name="page_exclusion" id="page_exclusion" 
 				action="?page=<?php 
 					echo $this->options_key ?>&amp;se_admin[action]=save_pages" method="post">
-				<table  width="80%" cellpadding="3" cellspacing="3" border="0">
+				<table class="widefat" width="80%" cellpadding="3" cellspacing="3" border="0">
 				<thead>
 		        <tr>
-		        	<th><?php _e('Action Name') ?></th>
-		        	<th><?php _e('Description ') ?></th>
-		        	<th><?php _e('Inclusion/Exclusion Default') ?></th>
+		        	<th class="action"><?php _e('Action Name') ?></th>
+		        	<th class="description"><?php _e('Description ') ?></th>
+		        	<th class="inc-excl"><?php _e('Inclusion/Exclusion Default') ?></th>
 		        </tr>
 				</thead>
 				<tbody>
@@ -629,9 +706,9 @@ class SimplyExclude
 					$class = ('alternate' == $class) ? '' : 'alternate';
 					?>
 					<tr <?php if (strlen($class)) echo "class='".$class."'" ?>>
-						<td><?php echo $action_val['name'] ?></td>
-						<td><?php echo $action_val['description'] ?></td>
-						<td>
+						<td class="action"><?php echo $action_val['name'] ?></td>
+						<td class="description"><?php echo $action_val['description'] ?></td>
+						<td class="inc-excl">
 							<input type="radio" 
 								name="se_admin[pages][actions][<?php echo $action_key ?>]" value="i" 
 								<?php if ($this->se_cfg['pages']['actions'][$action_key] == 'i') 
@@ -651,7 +728,7 @@ class SimplyExclude
 				<br />
 
 
-				<table width="80%" cellpadding="3" cellspacing="3">
+				<table class="widefat" width="80%" cellpadding="3" cellspacing="3">
 				<thead>
 		        <tr>
 		        	<th class="page-id" scope="col"><?php _e('ID') ?></th>
@@ -668,10 +745,11 @@ class SimplyExclude
 					}
 				?>	
 				<tr>
-					<td>
-						<div style="float:right;"><p class="submit"><input type="hidden" name="action" value="editcatvis" /><input type="submit" name="submit" value="<?php _e('Save Changes &raquo;') ?>" />
-						</p></div>
-						
+					<td colspan="3">
+						<p class="submit">
+							<input type="hidden" name="action" value="editcatvis" />
+							<input type="submit" name="submit"  value="<?php _e('Save Changes &raquo;') ?>" />
+						</p>
 					</td>
 				</tr>
 				</tbody>	
@@ -689,10 +767,21 @@ class SimplyExclude
 
 	function se_show_page_item_row($page_info, $class = '')
 	{
+		$page_parents = $this->get_page_parent_tree_array($page_info->ID, 0);
+		$level_spacer = "";
+		foreach($page_parents as $page_parent)
+		{
+			if ($page_parent->ID == $page_info->ID)
+				continue;
+
+			$level_spacer .= "&ndash;";
+		}
+		
+		
 		?>
 		<tr <?php if (strlen($class)) echo "class='".$class."'" ?>>
 			<td class="page-id"><?php echo $page_info->ID ?></td>
-			<td class="page-name"><?php echo $page_info->post_title ?></td>
+			<td class="page-name"><?php echo $level_spacer. $page_info->post_title ?></td>
 			<td class="page-action"><?php $this->se_display_page_action_row($page_info->ID) ?></td>
 		</tr>
 		<?php
@@ -734,12 +823,13 @@ class SimplyExclude
 	// http://wordpress.org/extend/plugins/search-everything/
 	function SE4_exclude_posts($where) {
 		global $wp_query;
+
+		$action_key = "is_search";
+
 		if ((!empty($wp_query->query_vars['s'])) 
 		 && (count($this->se_cfg['pages'][$action_key]) > 0))
 		{
-			$action_key = "is_search";
 			$excl_list = $this->get_pages_list(',', $this->se_cfg['pages'][$action_key]);
-
 			//$excl_list = implode(',', explode(',', trim($this->options['SE4_exclude_posts_list'])));
 			
 			$where = str_replace('"', '\'', $where);
@@ -757,7 +847,6 @@ class SimplyExclude
 		global $wp_query;
 
 		if (!empty($wp_query->query_vars['s'])) {
-
 			$where = str_replace('"', '\'', $where);
 			if ('true' == $this->options['SE4_approved_pages_only']) {
 				$where = str_replace('post_type = \'post\' AND ', 'post_password = \'\' AND ', $where);
@@ -768,8 +857,6 @@ class SimplyExclude
 		}
 		return $where;
 	}
-	
-	
 
 	// END CONFIG FUNCTIONS
 	/////////////////////////////////////////////////////////////////
@@ -777,7 +864,10 @@ class SimplyExclude
 	
 	function se_filters($query) 
 	{
-		//echo "query before<pre>"; print_r($query); echo "</pre>";
+		if ($this->in_admin == true)
+			return;
+			
+		echo "query before<pre>"; print_r($query); echo "</pre>";
 		if (count($this->default_IsActions['cats']) > 0)
 		{
 			foreach ($this->default_IsActions['cats'] as $action_key => $action_val)
@@ -834,7 +924,6 @@ class SimplyExclude
 		
 		foreach ($this->default_IsActions['pages'] as $action_key => $action_val)
 		{
-			//echo "action_key=[". $action_key. "]<br />";
 			if ($query->{$action_key})
 			{
 				add_filter('posts_where', array(&$this, 'SE4_search_pages'));
