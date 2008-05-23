@@ -30,16 +30,23 @@ is_feed - When a Feed is viewed/requested.
 
 Well you need to be careful when excluding both categories and tags. Since a post can be associated with both there is potential that you have excluded all your posts because they are either members of excluded categories or members or excluded tags. 
 
-= Why doesn't the plugin auto-update itself? =
+= I've excluded Pages but attachments (images) for those pages are showing up. Why? =
 
-I've not added that feature. A minor version coming soon. 
+Only the parent Page itself is excluded from searches. By default WordPress does not yet include Pages in search. Make sure you have other search plugins correctly configured to not search attachments. 
+
+= I've excluded a Page via the plugin but it still shows up in my sidebar when wp_list_pages is called. Why? =
+
+At the time (version 1.6.1) the plugin only effects Pages included in the traditional Search feature on a site. It does not trap all selections of Pages via other internal WordPress functions...yet!
+
 
 == Screenshots ==
 
-None
+1. Simply Exclude Admin interface showing Category exclusion options. 
+2. Page Admin interface allow for exclusion of Page from search. 
+
 
 == Version Histroy == 
-<p>Revision history<br />
+<p>
 1.0 - 2007-11-20: Initial release<br />
 1.1 - 2008-12-15: Added logic to work with WP version greater than 2.2<br />
 1.5 - 20008-04-27 Fixed display issues. Changes 'List' to 'Archive'. Added tags inclusion/exclusion login. Works only with WP 2.3 and greater.<br />
