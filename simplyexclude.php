@@ -4,7 +4,7 @@ Plugin Name: Simply Exclude
 Plugin URI: http://www.codehooligans.com/2008/04/27/simply-exclude-plugin/
 Description: Provides an interface to selectively exclude/include categories, tags and page from the 4 actions used by WordPress. is_front, is_archive, is_search, is_feed.
 Author: Paul Menard
-Version: 1.6.1
+Version: 1.7
 Author URI: http://www.codehooligans.com
 
 Revision history
@@ -12,7 +12,7 @@ Revision history
 1.1 - 2008-12-15: Added logic to work with WP version greater than 2.2
 1.5 - 20008-04-27 Fixed display issues. Changes 'List' to 'Archive'. Added tags inclusion/exclusion login. Works only with WP 2.3 and greater.
 1.6 - 2008-05-22 Fixed various items. Added format display for Categories and Pages to reveal heirarchy, Disable plugin functions when searching in admin. This also corrected a display exclusion bug when showing categories and pages. 
-
+1.7 - 2008-05-29 Added Author to the Include/Exclude logic. Now you can exclude Author's Posts from Search, Home, RSS, Archive.
 */
 
 class SimplyExclude
@@ -55,7 +55,7 @@ class SimplyExclude
 		
 		add_action('save_post', array(&$this,'save_page_exclude_answer'));		
 
-		add_filter('posts_request', array(&$this,'posts_request_proc'));
+		//add_filter('posts_request', array(&$this,'posts_request_proc'));
 	}
 
 
@@ -71,7 +71,8 @@ class SimplyExclude
 		$this->in_admin = true;
 		
 		if (function_exists('add_meta_box')) {
-			add_meta_box($this->_options_key, $this->_admin_menu_label, array(&$this,'add_page_exclude_sidebar_dbx'), 'page');
+			add_meta_box($this->_options_key, $this->_admin_menu_label,
+				 array(&$this,'add_page_exclude_sidebar_dbx'), 'page');
 		}
 		else { 
 			add_filter('dbx_page_sidebar', array(&$this,'add_page_exclude_sidebar_dbx'));
@@ -157,7 +158,42 @@ class SimplyExclude
 			= "Visibility in archive links (i.e., calendar links).";
 		$this->default_IsActions['tags']['is_archive']['action'] 	= "e";			
 
+		// Authors
+		$this->default_IsActions['authors'] = array();
+		$this->default_IsActions['authors']['is_home']['name'] 		
+			= "Front";
+		$this->default_IsActions['authors']['is_home']['description']
+			= "Visibility on the front/main page.";
+		$this->default_IsActions['authors']['is_home']['action']
+			= "i";
+				
+		$this->default_IsActions['authors']['is_archive']['name']			
+			= "Archive";
+		$this->default_IsActions['authors']['is_archive']['description']
+			= "Visibility on the archive of categories on the sidebar";
+		$this->default_IsActions['authors']['is_archive']['action']
+			= "e";
 
+		$this->default_IsActions['authors']['is_search']['name']
+			= "Search";
+		$this->default_IsActions['authors']['is_search']['description']
+			= "Visibility in search results.";
+		$this->default_IsActions['authors']['is_search']['action']
+			= "e";
+
+		$this->default_IsActions['authors']['is_feed']['name']
+			= "Feed";
+		$this->default_IsActions['authors']['is_feed']['description']
+			= "Visibility in RSS/RSS2/Atom feeds.";
+		$this->default_IsActions['authors']['is_feed']['action']
+			= "e";
+
+		$this->default_IsActions['authors']['is_archive']['name']
+			= "Archive";			
+		$this->default_IsActions['authors']['is_archive']['description']
+			= "Visibility in archive links (i.e., calendar links).";
+		$this->default_IsActions['authors']['is_archive']['action'] 	= "e";			
+	
 		// Pages Definitions
 		$this->default_IsActions['pages'] = array();
 		$this->default_IsActions['pages']['is_search']['name']			= "Search";
@@ -182,6 +218,7 @@ class SimplyExclude
 				$this->se_cfg['cats']['actions'][$cat_key] = $cat_action['action'];
 			}
 		}
+
 		if (!isset($this->se_cfg['tags']['actions']))
 		{
 			foreach($this->default_IsActions['tags'] as $tag_key => $tag_action)
@@ -189,6 +226,15 @@ class SimplyExclude
 				$this->se_cfg['tags']['actions'][$tag_key] = $tag_action['action'];
 			}
 		}
+
+		if (!isset($this->se_cfg['authors']['actions']))
+		{
+			foreach($this->default_IsActions['authors'] as $author_key => $author_action)
+			{
+				$this->se_cfg['authors']['actions'][$author_key] = $author_action['action'];
+			}
+		}
+		
 		if (!isset($this->se_cfg['pages']['actions']))
 		{
 			foreach($this->default_IsActions['pages'] as $page_key => $page_action)
@@ -251,6 +297,10 @@ class SimplyExclude
 					$this->se_display_tags_panel($se_admin);
 					break;
 
+				case 'edit_authors':
+				case 'save_authors':
+					$this->se_display_authors_panel($se_admin);
+					break;
 
 				default:
 				case 'edit_categories':
@@ -291,6 +341,15 @@ class SimplyExclude
 							title="Manage Tag Exclusions">Manage Tags</a></li><?php
 					}
 				?>						
+				<li><a href="?page=<?php 
+					echo $this->options_key ?>&amp;se_admin[action]=edit_authors"
+					<?php
+					if (($se_admin['action'] == 'edit_authors')
+					 || ($se_admin['action'] == 'save_authors'))
+						echo 'class="current"';
+					?>
+ 					title="Manage Author Exclusions">Manage Authors</a></li>
+
 				<li><a href="?page=<?php 
 					echo $this->options_key ?>&amp;se_admin[action]=edit_pages"
 					<?php
@@ -439,7 +498,6 @@ class SimplyExclude
 	function se_show_cat_item_row($cat_info, $class)
 	{
 		$cat_parents = $this->get_cat_parent_tree_array($cat_info->cat_ID, 0);
-		//echo "cat_parents<pre>"; print_r($cat_parents); echo "</pre>";
 		$level_spacer = "";
 		foreach($cat_parents as $cat_parent)
 		{
@@ -628,6 +686,161 @@ class SimplyExclude
 
 	// END CONFIG FUNCTIONS
 	/////////////////////////////////////////////////////////////////
+
+
+	// AUTHOR FUNCTIONS
+	/////////////////////////////////////////////////////////////////
+	function se_display_authors_panel($se_admin)
+	{
+		?>
+		<h2>Manage Author Exclusions</h2>
+		<?php
+		if ($se_admin['action'] == "save_authors")
+		{
+			if (isset($se_admin['authors']))
+				$this->se_cfg['authors'] = $se_admin['authors'];
+			else
+				unset($this->se_cfg['authors']);
+			
+			$this->se_save_config();				
+			?>
+			<div class="updated">
+				<p>Author Exclusions successfully updated.</p>
+			</div>
+			<?php
+		}
+		$this->se_show_authors_form();
+	}
+
+	function se_load_authors()
+	{
+		global $wpdb;
+		if (!$this->authors)
+		{
+			$this->authors = get_users_of_blog();
+		}
+	}	
+	
+	function se_show_authors_form()
+	{
+		$this->se_load_authors();
+		if ($this->authors)
+		{
+			$this->display_instructions('authors');
+			?>
+			<form name="author_exclusion" id="author_exclusion" 
+				action="?page=<?php 
+					echo $this->options_key ?>&amp;se_admin[action]=save_authors" method="post">
+
+				<table class="widefat" width="80%" cellpadding="0" cellspacing="2" border="0">
+				<thead>
+		        <tr>
+		        	<th class="action"><?php _e('Action Name') ?></th>
+		        	<th class="description"><?php _e('Description ') ?></th>
+		        	<th class="inc-excl"><?php _e('Inclusion/Exclusion') ?></th>
+		        </tr>
+				</thead>
+				<tbody>
+				<?php
+				foreach ($this->default_IsActions['authors'] as $action_key => $action_val)
+				{
+					$class = ('alternate' == $class) ? '' : 'alternate';
+					?>
+					<tr <?php if (strlen($class)) echo "class='".$class."'" ?>>
+						<td class="action"><?php echo $action_val['name'] ?></td>
+						<td class="description"><?php echo $action_val['description'] ?></td>
+						<td class="inc-excl">
+							<input type="radio" 
+								name="se_admin[authors][actions][<?php echo $action_key ?>]" value="i" 
+								<?php if ($this->se_cfg['authors']['actions'][$action_key] == 'i') 
+									echo "checked='checked'"; ?> /> Include only<br />
+							<input type="radio" 
+								name="se_admin[authors][actions][<?php echo $action_key ?>]" value="e" 
+								<?php if ($this->se_cfg['authors']['actions'][$action_key] == 'e') 
+									echo "checked='checked'"; ?> /> Exclude
+						</td>
+					<tr>
+					<?php
+				}
+				?>
+				</tbody>
+				</table>
+				<br />
+				<table class="widefat" width="80%" cellpadding="0" cellspacing="2" border="0">
+				<thead>
+		        <tr>
+		        	<th class="author-id" scope="col"><?php _e('ID') ?></th>
+		        	<th class="author-name" scope="col"><?php _e('Author Name') ?></th>
+		        	<th class="cat-action" scope="col"><?php _e('Exclude from...') ?></th>
+		        </tr>
+				</thead>
+				<tbody>
+				<?php
+					foreach($this->authors as $author_info)
+					{	
+						$class = ('alternate' == $class) ? '' : 'alternate';
+						$this->se_show_author_item_row($author_info, $class);
+					}
+				?>		
+				<tr>
+					<td colspan="3">
+						<p class="submit">
+							<input type="hidden" name="action" value="editcatvis" />
+							<input type="submit" name="submit"  value="<?php _e('Save Changes &raquo;') ?>" />
+						</p>
+					</td>
+				</tr>
+				</tbody>
+				</table>
+				</p></div>				
+			</form>
+			<?php
+		}
+		else
+		{
+			?><p>You don't have any Authorss defined.</p><?php
+		}
+	}
+	
+	function se_show_author_item_row($author_info, $class)
+	{
+		?>
+		<tr <?php if (strlen($class)) echo "class='".$class."'" ?>>
+			<td class="author-id"><?php echo $author_info->user_id ?></td>
+			<td class="author-name"><?php echo $author_info->display_name ?></td>
+			<td class="author-action"><?php $this->se_display_author_action_row($author_info->user_id) ?></td>
+		</tr>
+		<?php
+	}
+	
+	function se_display_author_action_row($author_id)
+	{
+		foreach ($this->default_IsActions['authors'] as $action_key => $action_val)
+		{
+			?>
+			<label for="authors-<?php echo $action_key ?>-<?php echo $author_id ?>">
+				<?php echo $action_val['name'] ?></label>&nbsp;
+			<input type="checkbox" 
+				name="se_admin[authors][<?php echo $action_key ?>][<?php echo $author_id ?>]"
+				id="authors-<?php echo $action_key ?>-<?php echo $author_id ?>"
+				<?php
+				if ($this->se_cfg['authors'][$action_key][$author_id] == "on")
+					echo "checked='checked' ";
+				?> />
+			<?php
+		}
+	}
+	
+	// END CONFIG FUNCTIONS
+	/////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
 
 
 	// PAGE FUNCTIONS
@@ -867,7 +1080,6 @@ class SimplyExclude
 		if ($this->in_admin == true)
 			return;
 			
-		//echo "query before<pre>"; print_r($query); echo "</pre>";
 		if (count($this->default_IsActions['cats']) > 0)
 		{
 			foreach ($this->default_IsActions['cats'] as $action_key => $action_val)
@@ -891,57 +1103,85 @@ class SimplyExclude
 
 		if ($this->wp_version >= 2.3)
 		{
-			foreach ($this->default_IsActions['tags'] as $action_key => $action_val)
+			if (count($this->default_IsActions['tags']) > 0)
 			{
-				if ($query->{$action_key})
+				foreach ($this->default_IsActions['tags'] as $action_key => $action_val)
 				{
-					if (isset($this->se_cfg['tags'][$action_key]))
+					if ($query->{$action_key})
 					{
-						if (isset($tag_array_list))
-							unset($tag_array_list);
-							
-						$tag_array_list = array();
-						if (count($this->se_cfg['tags'][$action_key]) > 0)
+						if (isset($this->se_cfg['tags'][$action_key]))
 						{
-							foreach($this->se_cfg['tags'][$action_key] as $key => $val)
+							if (isset($tag_array_list))
+								unset($tag_array_list);
+							
+							$tag_array_list = array();
+							if (count($this->se_cfg['tags'][$action_key]) > 0)
 							{
-								$tag_array_list[] = $key; 
-							}
+								foreach($this->se_cfg['tags'][$action_key] as $key => $val)
+								{
+									$tag_array_list[] = $key; 
+								}
 
-							if ($this->se_cfg['tags']['actions'][$action_key] == "e")
-							{
-								$query->set('tag__not_in', $tag_array_list);
-							}
-							else
-							{
-								$query->set('tag__in', $tag_array_list);
+								if ($this->se_cfg['tags']['actions'][$action_key] == "e")
+								{
+									$query->set('tag__not_in', $tag_array_list);
+								}
+								else
+								{
+									$query->set('tag__in', $tag_array_list);
+								}
 							}
 						}
 					}
 				}
 			}
-		}
-		
-		foreach ($this->default_IsActions['pages'] as $action_key => $action_val)
-		{
-			if ($query->{$action_key})
+
+			if (count($this->default_IsActions['authors']) > 0)
 			{
-				add_filter('posts_where', array(&$this, 'SE4_search_pages'));
-				add_filter('posts_where', array(&$this, 'SE4_exclude_posts'));
+				foreach ($this->default_IsActions['authors'] as $action_key => $action_val)
+				{
+					$authors_list = "";
+					if ($query->{$action_key})
+					{
+						if (isset($this->se_cfg['authors'][$action_key]))
+						{
+							if (count($this->se_cfg['authors'][$action_key]))
+							{
+								$authors_list = $this->se_listify_ids(
+									$this->se_cfg['authors']['actions'][$action_key],
+									$this->se_cfg['authors'][$action_key]);
+							}
+						}
+						if (strlen($authors_list))
+							$query->set('author', $authors_list);
+					}
+				}
+			}
+		}
+
+		if (count($this->default_IsActions['pages']) > 0)
+		{
+			foreach ($this->default_IsActions['pages'] as $action_key => $action_val)
+			{
+				if ($query->{$action_key})
+				{
+					add_filter('posts_where', array(&$this, 'SE4_search_pages'));
+					add_filter('posts_where', array(&$this, 'SE4_exclude_posts'));
 
 /*
-				$pages_list;
-				if (isset($this->se_cfg['pages'][$action_key]))
-				{
-					//echo "this->se_cfg['pages'][$action_key]=[". $this->se_cfg['pages'][$action_key]. "]<br />";
+					$pages_list;
+					if (isset($this->se_cfg['pages'][$action_key]))
+					{
+						//echo "this->se_cfg['pages'][$action_key]=[". $this->se_cfg['pages'][$action_key]. "]<br />";
 					
-					$pages_list = $this->se_listify_ids($this->se_cfg['pages']['actions'][$action_key], 
-														$this->se_cfg['pages'][$action_key]);
-					//echo "pages_list=[". $pages_list."]<br />";
-				}
-				if (strlen($pages_list))
-					$query->set('page', $pages_list);
+						$pages_list = $this->se_listify_ids($this->se_cfg['pages']['actions'][$action_key], 
+															$this->se_cfg['pages'][$action_key]);
+						//echo "pages_list=[". $pages_list."]<br />";
+					}
+					if (strlen($pages_list))
+						$query->set('page', $pages_list);
 */
+				}
 			}
 		}
 		//echo "query after<pre>"; print_r($query); echo "</pre>";
@@ -992,6 +1232,19 @@ class SimplyExclude
 					WP action. </p>
 			<?php
 		}
+		else if ($type == "authors")
+		{
+			?>
+			<p>Set the checkbox to exclude the respective author from the action</p>
+			<p>So what is the difference between Exclusion and Inclusion?<br />
+				<strong>Exclude</strong>: Select this action to exclude Authors from WP 
+					action. For example you may wish to exclude the Author 'jim' from Searches.<br />
+				<strong>Include</strong>: Select the Author you wish to be included for certain 
+					WP actions. For example you want only a certain author(s) displayed on the home 
+					page. Note that with Include only those checked items will be included in the 
+					WP action. </p>
+			<?php
+		}
 		else if ($type == "pages")
 		{
 		
@@ -1029,7 +1282,7 @@ class SimplyExclude
 		if ($this->wp_version < 2.5)
 		{
 			?>
-			<fieldset id="use_ssl" class="dbx-box">
+			<fieldset id="exclude_search_page" class="dbx-box">
 				<h3 class="dbx-handle"><?php _e('Exclude from Search?') ?></h3> 
 				<div class="dbx-content">
 			<?php
