@@ -40,6 +40,8 @@ form#cat_exclusion table tr .action,
 form#cat_exclusion table tr .cat-id,
 form#tag_exclusion table tr .action,
 form#tag_exclusion table tr .tag-id,
+form#author_exclusion table tr .action,
+form#author_exclusion table tr .author-id,
 form#page_exclusion table tr .action,
 form#page_exclusion table tr .page-id {
 	text-align: left;
@@ -50,6 +52,8 @@ form#cat_exclusion table tr .description,
 form#cat_exclusion table tr .cat-name,
 form#tag_exclusion table tr .description,
 form#tag_exclusion table tr .tag-name,
+form#author_exclusion table tr .description,
+form#author_exclusion table tr .author-name,
 form#page_exclusion table tr .description,
 form#page_exclusion table tr .page-name {
 	text-align: left;
@@ -60,6 +64,8 @@ form#cat_exclusion table tr .inc-excl,
 form#cat_exclusion table tr .cat-action,
 form#tag_exclusion table tr .inc-excl,
 form#tag_exclusion table tr .tag-action,
+form#author_exclusion table tr .inc-excl,
+form#author_exclusion table tr .author-action,
 form#page_exclusion table tr .inc-excl,
 form#page_exclusion table tr .page-action {
 	text-align: left;
@@ -68,13 +74,15 @@ form#page_exclusion table tr .page-action {
 
 form#cat_exclusion table tbody tr td.cat-action label,
 form#tag_exclusion table tbody tr td.tag-action label,
+form#author_exclusion table tbody tr td.author-action label,
 form#page_exclusion table tbody tr td.page-action label {
 	padding: 0;
 	margin: 0;
 }
 
 form#cat_exclusion table tbody tr td.cat-action input,
-form#tag_exclusion table tbody tr td.tag-action input {
+form#tag_exclusion table tbody tr td.tag-action input,
+form#author_exclusion table tbody tr td.author-action input {
 	margin-right: 15px;
 	margin-left: 0px;
 }
@@ -87,6 +95,7 @@ form#page_exclusion table tbody tr td.page-action input {
 
 form#cat_exclusion .submit,
 form#tag_exclusion .submit,
+form#author_exclusion .submit,
 form#page_exclusion .submit {
 	border-top: 0px solid #CCCCCC;
 	margin: 2px 0pt 0pt;
