@@ -1,0 +1,58 @@
+=== Simply Exclude ===
+Contributors: Paul Menard
+Donate link: http://www.codehooligans.com
+Tags: admin, posts, pages, categories, tags, exclude, include, is_front, is_archive, is_search, is_feed
+Requires at least: 2.3
+Tested up to: 2.5.1
+Stable tag: 1.7
+
+== Description ==
+
+Provides an interface to selectively exclude/include categories, tags, authors and pages from the 4 actions used by WordPress
+
+is_front - When the user views the Front page. 
+is_archive - When the user views an category or tags Archive.
+is_search - When the user views a search result page.
+is_feed - When a Feed is viewed/requested.
+
+Note: Page exclusions only work for search.
+
+[Plugin Homepage](http://www.codehooligans.com/2008/04/27/simply-exclude-plugin/ "SimplyExclude Plugin for WordPress")
+
+== Installation ==
+
+1. Upload the extracted plugin folder and contained files to your `/wp-content/plugins/` directory
+2. Activate the plugin through the 'Plugins' menu in WordPress
+3. Navigate to Settings -> Simply Exclude (Options -> Simply Exclude in pre 2.5).
+4. Once on the plugin admin page you should see navigation links at the top: Manage Categories, Manage Tags, Manage Pages.On each of these page you can selectively exclude/include the cat/tag/page for the given action is_front/is_archive/is_feed/is_search. 
+
+== Frequently Asked Questions ==
+
+= I've excluded all my categories and all tags why am I seeing my 404 page? =
+
+Well you need to be careful when excluding both categories and tags. Since a post can be associated with both there is potential that you have excluded all your posts because they are either members of excluded categories or members or excluded tags. 
+
+= I've excluded Pages but attachments (images) for those pages are showing up. Why? =
+
+Only the parent Page itself is excluded from searches. By default WordPress does not yet include Pages in search. Make sure you have other search plugins correctly configured to not search attachments. 
+
+= I've excluded a Page via the plugin but it still shows up in my sidebar when wp_list_pages is called. Why? =
+
+At the time (version 1.6.1) the plugin only effects Pages included in the traditional Search feature on a site. It does not trap all selections of Pages via other internal WordPress functions...yet!
+
+
+== Screenshots ==
+
+1. Simply Exclude Admin interface showing Category exclusion options. 
+2. Page Admin interface allow for exclusion of Page from search. 
+
+
+== Version Histroy == 
+<p>
+1.0 - 2007-11-20: Initial release<br />
+1.1 - 2008-12-15: Added logic to work with WP version greater than 2.2<br />
+1.5 - 20008-04-27 Fixed display issues. Changes 'List' to 'Archive'. Added tags inclusion/exclusion login. Works only with WP 2.3 and greater.<br />
+1.6 - 2008-05-22 Fixed various items. Added format display for Categories and Pages to reveal hierarchy, Disable plugin functions when searching in admin. This also corrected a display exclusion bug when showing categories and pages. <br />
+1.7 - 2008-05-29 Added Author to the Include/Exclude logic. Now you can exclude Author's Posts from Search, Home, RSS, Archive.
+
+</p>
