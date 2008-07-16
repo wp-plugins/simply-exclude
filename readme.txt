@@ -4,7 +4,7 @@ Donate link: http://www.codehooligans.com
 Tags: admin, posts, pages, categories, tags, exclude, include, is_front, is_archive, is_search, is_feed
 Requires at least: 2.3
 Tested up to: 2.5.1
-Stable tag: 1.7
+Stable tag: 1.7.1
 
 == Description ==
 
@@ -54,5 +54,5 @@ At the time (version 1.6.1) the plugin only effects Pages included in the tradit
 1.5 - 20008-04-27 Fixed display issues. Changes 'List' to 'Archive'. Added tags inclusion/exclusion login. Works only with WP 2.3 and greater.<br />
 1.6 - 2008-05-22 Fixed various items. Added format display for Categories and Pages to reveal hierarchy, Disable plugin functions when searching in admin. This also corrected a display exclusion bug when showing categories and pages. <br />
 1.7 - 2008-05-29 Added Author to the Include/Exclude logic. Now you can exclude Author's Posts from Search, Home, RSS, Archive.
-
+1.7.1 - 2008-07-16 Fixed an issue with WP 2.6 where it automatically decided to unserialize the option data structure. 
 </p>

@@ -4,7 +4,7 @@ Plugin Name: Simply Exclude
 Plugin URI: http://www.codehooligans.com/2008/04/27/simply-exclude-plugin/
 Description: Provides an interface to selectively exclude/include categories, tags and page from the 4 actions used by WordPress. is_front, is_archive, is_search, is_feed.
 Author: Paul Menard
-Version: 1.7
+Version: 1.7.1
 Author URI: http://www.codehooligans.com
 
 Revision history
@@ -13,6 +13,7 @@ Revision history
 1.5 - 20008-04-27 Fixed display issues. Changes 'List' to 'Archive'. Added tags inclusion/exclusion login. Works only with WP 2.3 and greater.
 1.6 - 2008-05-22 Fixed various items. Added format display for Categories and Pages to reveal heirarchy, Disable plugin functions when searching in admin. This also corrected a display exclusion bug when showing categories and pages. 
 1.7 - 2008-05-29 Added Author to the Include/Exclude logic. Now you can exclude Author's Posts from Search, Home, RSS, Archive.
+1.7.1 - 2008-07-16 Fixed an issue with WP 2.6 where it automatically decided to unserialize the option data structure. 
 */
 
 class SimplyExclude
@@ -201,12 +202,22 @@ class SimplyExclude
 		$this->default_IsActions['pages']['is_search']['action']		= "e";
 			
 		$this->se_cfg['cfg']['page_name']			= "simplyexclude";
+		
 		$tmp_se_cfg = get_option($this->options_key);
 		if ($tmp_se_cfg)
 		{
-			if (!is_array($tmp_se_cfg))
+			//if (!is_array($tmp_se_cfg))
+			//	$this->se_cfg = unserialize($tmp_se_cfg);
+
+			// something new in WP 2.6. 
+			// It might decide to unseralize the option data for you! Fuckers!!
+			// So check the return.
+			if (is_serialized($tmp_se_cfg))
 				$this->se_cfg = unserialize($tmp_se_cfg);
+			else
+				$this->se_cfg = $tmp_se_cfg;
 		}	
+
 		$plugindir_node 				= dirname(plugin_basename(__FILE__));	
 		$plugindir_url 					= get_bloginfo('wpurl') . "/wp-content/plugins/". $plugindir_node;
 		$this->se_cfg['cfg']['myurl'] 	= $plugindir_url;
@@ -367,11 +378,13 @@ class SimplyExclude
 	/////////////////////////////////////////////////////////////////
 	function se_display_categories_panel($se_admin)
 	{
+		//echo "_REQUEST<pre>"; print_r($_REQUEST); echo "</pre>";
 		?>
 		<h2>Manage Category Exclusions</h2>
 		<?php
 		if ($se_admin['action'] == "save_categories")
 		{
+			//echo "se_admin<pre>"; print_r($se_admin); echo "</pre>";
 			if (isset($se_admin['cats']))
 				$this->se_cfg['cats'] = $se_admin['cats'];
 			else
