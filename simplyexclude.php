@@ -4,7 +4,7 @@ Plugin Name: Simply Exclude
 Plugin URI: http://www.codehooligans.com/2008/04/27/simply-exclude-plugin/
 Description: Provides an interface to selectively exclude/include categories, tags and page from the 4 actions used by WordPress. is_front, is_archive, is_search, is_feed.
 Author: Paul Menard
-Version: 1.7
+Version: 1.7.2
 Author URI: http://www.codehooligans.com
 
 Revision history
@@ -13,6 +13,8 @@ Revision history
 1.5 - 20008-04-27 Fixed display issues. Changes 'List' to 'Archive'. Added tags inclusion/exclusion login. Works only with WP 2.3 and greater.
 1.6 - 2008-05-22 Fixed various items. Added format display for Categories and Pages to reveal heirarchy, Disable plugin functions when searching in admin. This also corrected a display exclusion bug when showing categories and pages. 
 1.7 - 2008-05-29 Added Author to the Include/Exclude logic. Now you can exclude Author's Posts from Search, Home, RSS, Archive.
+1.7.1 - 2008-07-16 Fixed an issue with WP 2.6 where it automatically decided to unserialize the option data structure. 
+1.7.2 - 2009-02.05 Fixed some PHP warning by checking variable is set. Also added style to 2.7 interface. 
 */
 
 class SimplyExclude
@@ -34,7 +36,7 @@ class SimplyExclude
 		$this->wp_version = $wp_version;
 		$this->in_admin = false;
 		
-		$this->_admin_menu_label	= "Simply Exclude";
+		$this->admin_menu_label	= "Simply Exclude";
 		$this->options_key			= "simplyexclude";
 
 		$this->se_load_config();
@@ -44,7 +46,7 @@ class SimplyExclude
 		// Add our own admin menu
 		add_action('admin_menu', array(&$this,'se_add_nav'));
 
-	  	if ($_REQUEST['page'] == $this->options_key)
+	  	if ((isset($_REQUEST['page'])) && ($_REQUEST['page'] == $this->options_key))
 			add_action('admin_head', array(&$this,'se_admin_head'));
 
 		if (isset($_REQUEST['action']) && $_REQUEST['action'] == 'activate')
@@ -71,7 +73,7 @@ class SimplyExclude
 		$this->in_admin = true;
 		
 		if (function_exists('add_meta_box')) {
-			add_meta_box($this->_options_key, $this->_admin_menu_label,
+			add_meta_box($this->options_key, $this->admin_menu_label,
 				 array(&$this,'add_page_exclude_sidebar_dbx'), 'page');
 		}
 		else { 
@@ -201,12 +203,22 @@ class SimplyExclude
 		$this->default_IsActions['pages']['is_search']['action']		= "e";
 			
 		$this->se_cfg['cfg']['page_name']			= "simplyexclude";
+		
 		$tmp_se_cfg = get_option($this->options_key);
 		if ($tmp_se_cfg)
 		{
-			if (!is_array($tmp_se_cfg))
+			//if (!is_array($tmp_se_cfg))
+			//	$this->se_cfg = unserialize($tmp_se_cfg);
+
+			// something new in WP 2.6. 
+			// It might decide to unseralize the option data for you! Fuckers!!
+			// So check the return.
+			if (is_serialized($tmp_se_cfg))
 				$this->se_cfg = unserialize($tmp_se_cfg);
+			else
+				$this->se_cfg = $tmp_se_cfg;
 		}	
+
 		$plugindir_node 				= dirname(plugin_basename(__FILE__));	
 		$plugindir_url 					= get_bloginfo('wpurl') . "/wp-content/plugins/". $plugindir_node;
 		$this->se_cfg['cfg']['myurl'] 	= $plugindir_url;
@@ -263,6 +275,13 @@ class SimplyExclude
 		<link rel="stylesheet" href="<?php echo $this->se_cfg['cfg']['myurl'] ?>/simplyexclude_style_admin.css"
 		 type="text/css" media="screen" />
 		<?php 
+		if ($this->wp_version >= 2.7)
+		{
+			?>
+			<link rel="stylesheet" href="<?php echo $this->se_cfg['cfg']['myurl'] ?>/simplyexclude_style_admin_27.css"
+				type="text/css" media="screen" />
+			<?php
+		}
 	}
 
 	function se_install()
@@ -367,11 +386,13 @@ class SimplyExclude
 	/////////////////////////////////////////////////////////////////
 	function se_display_categories_panel($se_admin)
 	{
+		//echo "_REQUEST<pre>"; print_r($_REQUEST); echo "</pre>";
 		?>
 		<h2>Manage Category Exclusions</h2>
 		<?php
 		if ($se_admin['action'] == "save_categories")
 		{
+			//echo "se_admin<pre>"; print_r($se_admin); echo "</pre>";
 			if (isset($se_admin['cats']))
 				$this->se_cfg['cats'] = $se_admin['cats'];
 			else
@@ -914,6 +935,7 @@ class SimplyExclude
 				</thead>
 				<tbody>
 				<?php
+				$class = "";
 				foreach ($this->default_IsActions['pages'] as $action_key => $action_val)
 				{
 					$class = ('alternate' == $class) ? '' : 'alternate';
@@ -1013,7 +1035,8 @@ class SimplyExclude
 				id="pages-<?php echo $action_key ?>-<?php echo $page_id ?>"
 				<?php
 					
-				if ($this->se_cfg['pages'][$action_key][$page_id] == "on")
+				if ((isset($this->se_cfg['pages'][$action_key][$page_id]))
+				 && ($this->se_cfg['pages'][$action_key][$page_id] == "on"))
 					echo "checked='checked' ";
 				?> />
 			<?php
@@ -1278,6 +1301,10 @@ class SimplyExclude
 		
 		if ($this->se_cfg['pages'][$action_key][$post->ID] == "on")
 			$exclude_page = "yes";
+		else
+			$exclude_page = "no";
+		
+
 
 		if ($this->wp_version < 2.5)
 		{
@@ -1291,7 +1318,7 @@ class SimplyExclude
 				<p><?php
 				if ($this->wp_version >= 2.5)
 				{
-					?>Select this option 'Yes' to exclude this page from Searches or visit <a href="<?php echo get_option('siteurl') ?>/wp-admin/edit.php?page=simplyexclude&amp;se_admin[action]=edit_pages">Simply Exclude</a> Settings page to mass edit all Pages.<br /><?php
+					?>Select this option 'Yes' to exclude this page from Searches or visit <a href="<?php echo get_option('siteurl') ?>/wp-admin/options-general.php?page=simplyexclude&amp;se_admin[action]=edit_pages">Simply Exclude</a> Settings page to mass edit all Pages.<br /><?php
 				} ?>
 					<select name="se_page_exclude">
 						<option value='No' selected><?php echo _e('No'); ?></option>
