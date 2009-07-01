@@ -15,6 +15,7 @@ Revision history
 1.7 - 2008-05-29 Added Author to the Include/Exclude logic. Now you can exclude Author's Posts from Search, Home, RSS, Archive.
 1.7.1 - 2008-07-16 Fixed an issue with WP 2.6 where it automatically decided to unserialize the option data structure. 
 1.7.2 - 2009-02.05 Fixed some PHP warning by checking variable is set. Also added style to 2.7 interface. 
+1.7.2.1 - 2009-07.01 Fixed some PHP warning by checking variable is set. Also added style for 2.8 interface. Very minor changes. 
 */
 
 class SimplyExclude
@@ -293,8 +294,13 @@ class SimplyExclude
 
 	function se_manage_page()
 	{
+		//echo "_REQUEST<pre>"; print_r($_REQUEST); echo "</pre>";
+		
 		if (isset($_REQUEST['se_admin']))
+		{
 			$se_admin = $_REQUEST['se_admin'];
+			$se_admin['action'] = $_GET['se_admin']['action'];
+		}
 		else
 			$se_admin['action'] = 'edit_categories';
 
