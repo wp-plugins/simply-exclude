@@ -4,7 +4,7 @@ Plugin Name: Simply Exclude
 Plugin URI: http://www.codehooligans.com/2008/04/27/simply-exclude-plugin/
 Description: Provides an interface to selectively exclude/include categories, tags and page from the 4 actions used by WordPress. is_front, is_archive, is_search, is_feed.
 Author: Paul Menard
-Version: 1.7.2
+Version: 1.7.5
 Author URI: http://www.codehooligans.com
 
 Revision history
@@ -15,6 +15,9 @@ Revision history
 1.7 - 2008-05-29 Added Author to the Include/Exclude logic. Now you can exclude Author's Posts from Search, Home, RSS, Archive.
 1.7.1 - 2008-07-16 Fixed an issue with WP 2.6 where it automatically decided to unserialize the option data structure. 
 1.7.2 - 2009-02.05 Fixed some PHP warning by checking variable is set. Also added style to 2.7 interface. 
+1.7.2.1 - 2009-07.01 Fixed some PHP warning by checking variable is set. Also added style for 2.8 interface. Very minor changes. 
+1.7.5 - 2009-07.15 Fixed some PHP warning by checking variable is set. Also added style for 2.8 interface. Very minor changes. 
+
 */
 
 class SimplyExclude
