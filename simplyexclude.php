@@ -15,7 +15,6 @@ Revision history
 1.7 - 2008-05-29 Added Author to the Include/Exclude logic. Now you can exclude Author's Posts from Search, Home, RSS, Archive.
 1.7.1 - 2008-07-16 Fixed an issue with WP 2.6 where it automatically decided to unserialize the option data structure. 
 1.7.2 - 2009-02.05 Fixed some PHP warning by checking variable is set. Also added style to 2.7 interface. 
-1.7.2.1 - 2009-07.01 Fixed some PHP warning by checking variable is set. Also added style for 2.8 interface. Very minor changes. 
 */
 
 class SimplyExclude
@@ -266,8 +265,22 @@ class SimplyExclude
 	function se_add_nav() 
 	{
     	// Add a new menu under Manage:
-    	add_options_page('Simply Exclude', 'Simply Exclude', 8, 
-			$this->options_key, array(&$this, 'se_manage_page'));
+    	//add_options_page('Simply Exclude', 'Simply Exclude', 8, 
+		//	$this->options_key, array(&$this, 'se_manage_page'));
+		
+		add_menu_page( 'Simply Exclude', 'Simply Exclude', 7, 'se_manage_categories', array(&$this, 'se_manage_categories'));
+
+		add_submenu_page( 'se_manage_categories', 'Exclude Categories', 'Exclude Categories', 7, 
+			'se_manage_categories', array(&$this, 'se_manage_categories'));
+
+		add_submenu_page( 'se_manage_categories', 'Exclude Tags', 'Exclude Tags', 7, 
+			'se_manage_tags', array(&$this, 'se_manage_tags'));
+
+		add_submenu_page( 'se_manage_categories', 'Exclude Authors', 'Exclude Authors', 7, 
+			'se_manage_authors', array(&$this, 'se_manage_authors'));
+
+		add_submenu_page( 'se_manage_categories', 'Exclude Pages', 'Exclude Pages', 7, 
+			'se_manage_pages', array(&$this, 'se_manage_pages'));
 	}
 
 	function se_admin_head()
@@ -338,6 +351,54 @@ class SimplyExclude
 		<?php
 	}
 	
+	function se_manage_categories()
+	{
+		if (isset($_REQUEST['se_admin']))
+		{
+			$se_admin = $_REQUEST['se_admin'];
+			$se_admin['action'] = $_GET['se_admin']['action'];
+		}
+		?><div class="wrap"><?php
+		$this->se_display_categories_panel($se_admin);		
+		?></div><?php
+	}
+
+	function se_manage_tags()
+	{
+		if (isset($_REQUEST['se_admin']))
+		{
+			$se_admin = $_REQUEST['se_admin'];
+			$se_admin['action'] = $_GET['se_admin']['action'];
+		}
+		?><div class="wrap"><?php
+		$this->se_display_tags_panel($se_admin);
+		?></div><?php
+	}
+
+	function se_manage_authors()
+	{
+		if (isset($_REQUEST['se_admin']))
+		{
+			$se_admin = $_REQUEST['se_admin'];
+			$se_admin['action'] = $_GET['se_admin']['action'];
+		}
+		?><div class="wrap"><?php
+		$this->se_display_authors_panel($se_admin);
+		?></div><?php
+	}
+
+	function se_manage_pages()
+	{
+		if (isset($_REQUEST['se_admin']))
+		{
+			$se_admin = $_REQUEST['se_admin'];
+			$se_admin['action'] = $_GET['se_admin']['action'];
+		}
+		?><div class="wrap"><?php
+		$this->se_display_pages_panel($se_admin);
+		?></div><?php
+	}
+	
 	
 	function se_display_navigation($se_admin)
 	{
@@ -394,6 +455,7 @@ class SimplyExclude
 	{
 		//echo "_REQUEST<pre>"; print_r($_REQUEST); echo "</pre>";
 		?>
+		
 		<h2>Manage Category Exclusions</h2>
 		<?php
 		if ($se_admin['action'] == "save_categories")
@@ -449,9 +511,7 @@ class SimplyExclude
 			$this->display_instructions('cats');
 			?>
 			<form name="cat_exclusion" id="cat_exclusion" 
-				action="?page=<?php 
-					echo $this->options_key ?>&amp;se_admin[action]=save_categories" method="post">
-
+				action="?page=se_manage_categories&amp;se_admin[action]=save_categories" method="post">
 				<table class="widefat" width="80%" cellpadding="0" cellspacing="2" border="0">
 				<thead>
 		        <tr>
@@ -607,8 +667,7 @@ class SimplyExclude
 			$this->display_instructions('tags');
 			?>
 			<form name="tag_exclusion" id="tag_exclusion" 
-				action="?page=<?php 
-					echo $this->options_key ?>&amp;se_admin[action]=save_tags" method="post">
+				action="?page=se_manage_tags&amp;se_admin[action]=save_tags" method="post">
 
 				<table class="widefat" width="80%" cellpadding="3" cellspacing="3" border="0">
 				<thead>
@@ -756,8 +815,7 @@ class SimplyExclude
 			$this->display_instructions('authors');
 			?>
 			<form name="author_exclusion" id="author_exclusion" 
-				action="?page=<?php 
-					echo $this->options_key ?>&amp;se_admin[action]=save_authors" method="post">
+				action="?page=se_manage_authors&amp;se_admin[action]=save_authors" method="post">
 
 				<table class="widefat" width="80%" cellpadding="0" cellspacing="2" border="0">
 				<thead>
@@ -860,15 +918,6 @@ class SimplyExclude
 	
 	// END CONFIG FUNCTIONS
 	/////////////////////////////////////////////////////////////////
-
-
-
-
-
-
-
-
-
 
 	// PAGE FUNCTIONS
 	/////////////////////////////////////////////////////////////////
@@ -1278,6 +1327,7 @@ class SimplyExclude
 		{
 		
 			?>
+			<p style="color: red"><strong>WARNING: There is a known conflict when excluding pages here and via the plugin Search Everything. The problem is related to how each plugin will modify the SQL query used by WordPress. If you are using Search Everything plugin please do not make any exclusions here.</p>
 			<p>Set the checkbox to exclude the respective page from the action</p>
 			<p>So what is the difference between Exclusion and Inclusion?<br />
 				<strong>Exclude</strong>: Select this action to exclude Pages from WP 
