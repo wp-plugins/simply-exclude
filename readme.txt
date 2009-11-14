@@ -3,8 +3,8 @@ Contributors: Paul Menard
 Donate link: http://www.codehooligans.com
 Tags: admin, posts, pages, categories, tags, exclude, include, is_front, is_archive, is_search, is_feed
 Requires at least: 2.6
-Tested up to: 2.8.1
-Stable tag: 1.7.5
+Tested up to: 2.8.5
+Stable tag: 1.7.6
 
 == Description ==
 
@@ -47,15 +47,36 @@ At the time (version 1.6.1) the plugin only effects Pages included in the tradit
 2. Page Admin interface allow for exclusion of Page from search. 
 
 
-== Version Histroy == 
-<p>
-1.0 - 2007-11-20: Initial release<br />
-1.1 - 2008-12-15: Added logic to work with WP version greater than 2.2<br />
-1.5 - 20008-04-27 Fixed display issues. Changes 'List' to 'Archive'. Added tags inclusion/exclusion login. Works only with WP 2.3 and greater.<br />
-1.6 - 2008-05-22 Fixed various items. Added format display for Categories and Pages to reveal hierarchy, Disable plugin functions when searching in admin. This also corrected a display exclusion bug when showing categories and pages. <br />
-1.7 - 2008-05-29 Added Author to the Include/Exclude logic. Now you can exclude Author's Posts from Search, Home, RSS, Archive.
-1.7.1 - 2008-07-16 Fixed an issue with WP 2.6 where it automatically decided to unserialize the option data structure. 
-1.7.2 - 2009-02.05 Fixed some PHP warning by checking variable is set. Also added style to 2.7 interface. 
-1.7.2.1 - 2009-07.01 Fixed some PHP warning by checking variable is set. Also added style for 2.8 interface. Very minor changes. 
-1.7.5 - 2009-07.15 Fixed some PHP warning by checking variable is set. Also added style for 2.8 interface. Very minor changes. 
-</p>
+== Changelog == 
+
+= 1.7.6 =
+2009-11-14 
+Fixes: Issue with the Pages exclusion. Many users reporting a permissions issue. 
+Additions: Added handler logic to interface with two other plugins. One of the often used Google XML Sitemaps. When setting Page or Category exclusions you now have the option to update the Google XML Sitemaps exclude pages and categories automatically. The other plugin is Search Unleashed. 
+
+= 1.7.5 =
+2009-07-15 Fixed some PHP warning by checking variable is set. Also added style for 2.8 interface. Very minor changes. 
+
+= 1.7.2.1 =
+2009-07-01 Fixed some PHP warning by checking variable is set. Also added style for 2.8 interface. Very minor changes. 
+
+= 1.7.2 =
+2009-02-05 Fixed some PHP warning by checking variable is set. Also added style to 2.7 interface. 
+
+= 1.7.1 =
+2008-07-16 Fixed an issue with WP 2.6 where it automatically decided to unserialize the option data structure. 
+
+= 1.7 =
+2008-05-29 Added Author to the Include/Exclude logic. Now you can exclude Author's Posts from Search, Home, RSS, Archive.
+
+= 1.6 =
+2008-05-22 Fixed various items. Added format display for Categories and Pages to reveal hierarchy, Disable plugin functions when searching in admin. This also corrected a display exclusion bug when showing categories and pages.
+
+= 1.5 = 
+20008-04-27 Fixed display issues. Changes 'List' to 'Archive'. Added tags inclusion/exclusion login. Works only with WP 2.3 and greater.
+
+= 1.1 =
+2008-12-15: Added logic to work with WP version greater than 2.2
+
+= 1.0 =
+2007-11-20: Initial release
