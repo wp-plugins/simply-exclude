@@ -4,7 +4,7 @@ Plugin Name: Simply Exclude
 Plugin URI: http://www.codehooligans.com/2008/04/27/simply-exclude-plugin/
 Description: Provides an interface to selectively exclude/include categories, tags and page from the 4 actions used by WordPress. is_front, is_archive, is_search, is_feed.
 Author: Paul Menard
-Version: 1.7.5
+Version: 1.7.6
 Author URI: http://www.codehooligans.com
 
 Revision history
@@ -14,9 +14,10 @@ Revision history
 1.6 - 2008-05-22 Fixed various items. Added format display for Categories and Pages to reveal heirarchy, Disable plugin functions when searching in admin. This also corrected a display exclusion bug when showing categories and pages. 
 1.7 - 2008-05-29 Added Author to the Include/Exclude logic. Now you can exclude Author's Posts from Search, Home, RSS, Archive.
 1.7.1 - 2008-07-16 Fixed an issue with WP 2.6 where it automatically decided to unserialize the option data structure. 
-1.7.2 - 2009-02.05 Fixed some PHP warning by checking variable is set. Also added style to 2.7 interface. 
-1.7.2.1 - 2009-07.01 Fixed some PHP warning by checking variable is set. Also added style for 2.8 interface. Very minor changes. 
-1.7.5 - 2009-07.15 Fixed some PHP warning by checking variable is set. Also added style for 2.8 interface. Very minor changes. 
+1.7.2 - 2009-02-05 Fixed some PHP warning by checking variable is set. Also added style to 2.7 interface. 
+1.7.2.1 - 2009-07-01 Fixed some PHP warning by checking variable is set. Also added style for 2.8 interface. Very minor changes. 
+1.7.5 - 2009-07015 Fixed some PHP warning by checking variable is set. Also added style for 2.8 interface. Very minor changes. 
+1.7.6 - 2009-11-14 Fixes: Issue with the Pages exclusion. Many users reporting a permissions issue. Additions: Added handler logic to interface with two other plugins. One of the often used Google XML Sitemaps. When setting Page or Category exclusions you now have the option to update the Google XML Sitemaps exclude pages and categories automatically. The other plugin is Search Unleashed. 
 
 */
 
@@ -32,6 +33,8 @@ class SimplyExclude
 	var $wp_version;
 	
 	var $in_admin;
+	
+	var $GA_generatorObject;
 	
 	function SimplyExclude()
 	{
@@ -49,7 +52,11 @@ class SimplyExclude
 		// Add our own admin menu
 		add_action('admin_menu', array(&$this,'se_add_nav'));
 
-	  	if ((isset($_REQUEST['page'])) && ($_REQUEST['page'] == $this->options_key))
+	  	if ((isset($_REQUEST['page'])) && ($_REQUEST['page'] == "se_manage_categories")
+		 || (isset($_REQUEST['page'])) && ($_REQUEST['page'] == "se_manage_tags")
+		 || (isset($_REQUEST['page'])) && ($_REQUEST['page'] == "se_manage_authors")
+		 || (isset($_REQUEST['page'])) && ($_REQUEST['page'] == "se_manage_pages")
+		 || (isset($_REQUEST['page'])) && ($_REQUEST['page'] == "se_manage_options"))
 			add_action('admin_head', array(&$this,'se_admin_head'));
 
 		if (isset($_REQUEST['action']) && $_REQUEST['action'] == 'activate')
@@ -257,13 +264,52 @@ class SimplyExclude
 				$this->se_cfg['pages']['actions'][$page_key] = $page_action['action'];
 			}
 		}
-	}
-	
+		
+		
+		if (!isset($this->se_cfg['options']))
+		{
+			$this->se_cfg['options'] 										= array();
+		
+			$this->se_cfg['options']['google-sitemap-generator'] 			= array();
+			$this->se_cfg['options']['google-sitemap-generator']['name'] 	= "Google XML Sitemaps";
+			$this->se_cfg['options']['google-sitemap-generator']['url'] 	= "http://wordpress.org/extend/plugins/google-sitemap-generator/";
+			$this->se_cfg['options']['google-sitemap-generator']['desc'] 	= "Warning: Page ID listed in the Sitemap plugin will be removed and replaced with Page ID from the Simply Exclude plugin. Post ID values will be ignored";
+			$this->se_cfg['options']['google-sitemap-generator']['version'] = "3.1.6";
+			$this->se_cfg['options']['google-sitemap-generator']['status'] 	= false;
+			$this->se_cfg['options']['google-sitemap-generator']['active'] 	= true;
+			
+			$this->se_cfg['options']['google-sitemap-generator']['actions'] = array();
+			$this->se_cfg['options']['google-sitemap-generator']['actions']['pages']['desc'] = "Update Excluded Pages";		
+			$this->se_cfg['options']['google-sitemap-generator']['actions']['pages']['update'] = false;		
+			$this->se_cfg['options']['google-sitemap-generator']['actions']['categories']['desc'] = "Update Excluded Categories";		
+			$this->se_cfg['options']['google-sitemap-generator']['actions']['categories']['update'] = false;		
+		
+		
+			$this->se_cfg['options']['search-unleashed']							= array();
+			$this->se_cfg['options']['search-unleashed']['name']					= "Search Unleashed";
+			$this->se_cfg['options']['search-unleashed']['url']						= "http://wordpress.org/extend/plugins/search-unleashed/";
+			$this->se_cfg['options']['search-unleashed']['desc']					= "Warning: Page ID listed in the Search Unleashed plugin will be removed and replaced with Page ID from the Simply Exclude plugin. Post ID values will be ignored";
+			$this->se_cfg['options']['search-unleashed']['version']					= "1.0.5";
+			$this->se_cfg['options']['search-unleashed']['status']					= false;
+			$this->se_cfg['options']['search-unleashed']['active']					= true;
+			
+			$this->se_cfg['options']['search-unleashed']['actions'] 				= array();
+			$this->se_cfg['options']['search-unleashed']['actions']['pages']['desc'] 		= "Update Excluded Pages";		
+			$this->se_cfg['options']['search-unleashed']['actions']['pages']['update'] 	= false;		
+			$this->se_cfg['options']['search-unleashed']['actions']['categories']['desc'] 		= "Update Excluded Categories";		
+			$this->se_cfg['options']['search-unleashed']['actions']['categories']['update'] 	= false;		
+		}
+		$this->se_cfg['options']['google-sitemap-generator']['desc'] 	= "Warning: Page ID listed in the Sitemap plugin will be removed and replaced with Page ID from the Simply Exclude plugin. Post ID values will be ignored";
+		$this->se_cfg['options']['search-unleashed']['desc']					= "Warning: Page ID listed in the Search Unleashed plugin will be removed and replaced with Page ID from the Simply Exclude plugin. Post ID values will be ignored";
+
+		asort($this->se_cfg['options']);
+	}	
+
 	function se_save_config()
 	{
 		$ret = update_option($this->options_key, serialize($this->se_cfg));
 	}
-		
+	
 	
 	function se_add_nav() 
 	{
@@ -284,6 +330,10 @@ class SimplyExclude
 
 		add_submenu_page( 'se_manage_categories', 'Exclude Pages', 'Exclude Pages', 7, 
 			'se_manage_pages', array(&$this, 'se_manage_pages'));
+
+		add_submenu_page( 'se_manage_categories', 'Exclude Options', 'Exclude Options', 7, 
+			'se_manage_options', array(&$this, 'se_manage_options'));
+
 	}
 
 	function se_admin_head()
@@ -307,7 +357,7 @@ class SimplyExclude
 				serialize($this->se_cfg), 
 				"This is the serialized config structures used.");
 	}
-
+	
 	function se_manage_page()
 	{
 		//echo "_REQUEST<pre>"; print_r($_REQUEST); echo "</pre>";
@@ -402,6 +452,19 @@ class SimplyExclude
 		?></div><?php
 	}
 	
+	function se_manage_options()
+	{
+		if (isset($_REQUEST['se_admin']))
+		{
+			$se_admin = $_REQUEST['se_admin'];
+			$se_admin['action'] = $_GET['se_admin']['action'];
+		}
+		?><div class="wrap"><?php
+		$this->se_display_options_panel($se_admin);
+		?></div><?php
+		
+	}
+	
 	
 	function se_display_navigation($se_admin)
 	{
@@ -456,6 +519,7 @@ class SimplyExclude
 	/////////////////////////////////////////////////////////////////
 	function se_display_categories_panel($se_admin)
 	{
+		//$this->se_check_google_xml_sitemap_exclude_cats();
 		//echo "_REQUEST<pre>"; print_r($_REQUEST); echo "</pre>";
 		?>
 		
@@ -463,6 +527,9 @@ class SimplyExclude
 		<?php
 		if ($se_admin['action'] == "save_categories")
 		{
+			$this->se_update_google_xml_sitemap_exclude_cats();
+			$this->se_update_search_unleashed_exclude_cats();
+
 			//echo "se_admin<pre>"; print_r($se_admin); echo "</pre>";
 			if (isset($se_admin['cats']))
 				$this->se_cfg['cats'] = $se_admin['cats'];
@@ -568,7 +635,7 @@ class SimplyExclude
 				<tr>
 					<td colspan="3">
 						<p class="submit">
-							<input type="hidden" name="action" value="editcatvis" />
+							<input type="hidden" name="se_admin[action]" value="save_categories" />							
 							<input type="submit" name="submit"  value="<?php _e('Save Changes &raquo;') ?>" />
 						</p>
 					</td>
@@ -725,7 +792,7 @@ class SimplyExclude
 				<tr>
 					<td colspan="3">
 						<p class="submit">
-							<input type="hidden" name="action" value="editcatvis" />
+							<input type="hidden" name="se_admin[action]" value="save_tags" />							
 							<input type="submit" name="submit"  value="<?php _e('Save Changes &raquo;') ?>" />
 						</p>
 					</td>
@@ -873,7 +940,7 @@ class SimplyExclude
 				<tr>
 					<td colspan="3">
 						<p class="submit">
-							<input type="hidden" name="action" value="editcatvis" />
+							<input type="hidden" name="se_admin[action]" value="save_authors" />
 							<input type="submit" name="submit"  value="<?php _e('Save Changes &raquo;') ?>" />
 						</p>
 					</td>
@@ -886,7 +953,7 @@ class SimplyExclude
 		}
 		else
 		{
-			?><p>You don't have any Authorss defined.</p><?php
+			?><p>You don't have any Authors defined.</p><?php
 		}
 	}
 	
@@ -926,6 +993,7 @@ class SimplyExclude
 	/////////////////////////////////////////////////////////////////
 	function se_display_pages_panel($se_admin)
 	{
+		//$this->se_check_google_sitemap_exclude_pages();
 		?>
 		<h2>Manage Page Exclusions</h2>
 		<?php
@@ -933,6 +1001,11 @@ class SimplyExclude
 		{
 			if (isset($se_admin['pages']))
 			{
+				// Need to update the third party items before updating the master. This will allow for 
+				// comparison checking
+				$this->se_update_google_xml_sitemap_exclude_pages();
+				$this->se_update_search_unleashed_exclude_pages();				
+
 				$this->se_cfg['pages'] = $se_admin['pages'];
 				$this->se_save_config();
 				?>
@@ -943,6 +1016,7 @@ class SimplyExclude
 			}
 		}
 		$this->se_show_pages_form();
+		
 	}
 
 	function se_load_pages()
@@ -972,17 +1046,13 @@ class SimplyExclude
 
 	function se_show_pages_form()
 	{
-		//$this->display_instructions('pages');
-		//return;
-
 		$this->se_load_pages();
 		if ($this->pages)
 		{
 			$this->display_instructions('pages');
 			?>			
 			<form name="page_exclusion" id="page_exclusion" 
-				action="?page=<?php 
-					echo $this->options_key ?>&amp;se_admin[action]=save_pages" method="post">
+				action="?page=se_manage_pages&amp;se_admin[action]=save_pages" method="post">
 				<table class="widefat" width="80%" cellpadding="3" cellspacing="3" border="0">
 				<thead>
 		        <tr>
@@ -1040,7 +1110,7 @@ class SimplyExclude
 				<tr>
 					<td colspan="3">
 						<p class="submit">
-							<input type="hidden" name="action" value="editcatvis" />
+							<input type="hidden" name="se_admin[action]" value="save_pages" />
 							<input type="submit" name="submit"  value="<?php _e('Save Changes &raquo;') ?>" />
 						</p>
 					</td>
@@ -1050,6 +1120,7 @@ class SimplyExclude
 				
 			</form>
 			<?php
+			//$this->se_check_google_sitemap_exclude(1);
 		}
 		else
 		{
@@ -1100,7 +1171,7 @@ class SimplyExclude
 			<?php
 		}
 	}
-	
+		
 	function get_pages_list($sep, $ids)
 	{		
 		foreach($ids as $id_key => $id_val)
@@ -1116,22 +1187,24 @@ class SimplyExclude
 	// The following 2 function we taken from the wonderful SearchEverything plugin. 
 	// http://wordpress.org/extend/plugins/search-everything/
 	function SE4_exclude_posts($where) {
-		global $wp_query;
+		global $wp_query, $wpdb;
 
 		$action_key = "is_search";
 
 		if ((!empty($wp_query->query_vars['s'])) 
 		 && (count($this->se_cfg['pages'][$action_key]) > 0))
 		{
+			//echo __FUNCTION__ ." before : where=[".$where."]<br />";
 			$excl_list = $this->get_pages_list(',', $this->se_cfg['pages'][$action_key]);
 			//$excl_list = implode(',', explode(',', trim($this->options['SE4_exclude_posts_list'])));
 			
-			$where = str_replace('"', '\'', $where);
-			$where = 'AND ('.substr($where, strpos($where, 'AND')+3).' )';
+			$where = str_replace('"', "'", $where);
+			$where = 'AND ('. substr($where, strpos($where, 'AND')+3). ' )';
 			if ($this->se_cfg['pages']['actions'][$action_key] == 'e')
-				$where .= ' AND (ID NOT IN ( '.$excl_list.' ))';
+				$where .= ' AND ('.$wpdb->posts.'.ID NOT IN ( '.$excl_list.' ))';
 			else
-				$where .= ' AND (ID IN ( '.$excl_list.' ))';			
+				$where .= ' AND ('.$wpdb->posts.'.ID IN ( '.$excl_list.' ))';			
+			//echo __FUNCTION__ ." after: where=[".$where."]<br />";
 		}
 		return $where;
 	}
@@ -1141,19 +1214,163 @@ class SimplyExclude
 		global $wp_query;
 
 		if (!empty($wp_query->query_vars['s'])) {
-			$where = str_replace('"', '\'', $where);
+			//echo __FUNCTION__ ." before: where=[".$where."]<br />";
+
+			$where = str_replace('"', "'", $where);
 			if ('true' == $this->options['SE4_approved_pages_only']) {
-				$where = str_replace('post_type = \'post\' AND ', 'post_password = \'\' AND ', $where);
+				$where = str_replace("post_type = 'post' AND ", "post_password = '' AND ", $where);
 			}
 			else { // < v 2.1
-				$where = str_replace('post_type = \'post\' AND ', '', $where);
+				$where = str_replace("post_type = 'post' AND ", "", $where);
 			}
+			//echo __FUNCTION__ ." after: where=[".$where."]<br />";
 		}
+		
 		return $where;
 	}
 
 	// END CONFIG FUNCTIONS
 	/////////////////////////////////////////////////////////////////
+	
+	
+	
+	// OPTIONS FUNCTIONS
+	/////////////////////////////////////////////////////////////////
+	function se_display_options_panel($se_admin)
+	{
+		?>
+		<h2>Manage Simply Exclude Options and Third-Party hooks</h2>
+		<?php
+		
+		if (isset($_REQUEST['se_admin']))
+			$se_admin = $_REQUEST['se_admin'];
+
+		$this->se_load_options();
+			
+		if ($se_admin['action'] == "save_options")
+		{
+			if (isset($se_admin['options']))
+			{
+				foreach ($this->se_cfg['options'] as $option_key => $options_set)
+				{
+					if ($options_set['status'] === true)
+					{
+						if (count($options_set['actions']))
+						{
+							foreach($options_set['actions'] as $option_actions_idx => $option_actions_set)
+							{
+								if (isset($se_admin['options'][$option_key]['actions'][$option_actions_idx]['update']))
+									$this->se_cfg['options'][$option_key]['actions'][$option_actions_idx]['update'] = true;
+								else
+									$this->se_cfg['options'][$option_key]['actions'][$option_actions_idx]['update'] = false;
+							}
+						}
+					}
+				}
+				$this->se_save_config();				
+				?>
+				<div class="updated">
+					<p>Exclusion Options successfully updated.</p>
+				</div>
+				<?php
+				
+			}
+		}
+		$this->se_show_options_form();
+	}
+	
+	function se_load_options()
+	{
+		$check_plugins = get_option('active_plugins');
+		if ($check_plugins)
+		{
+			foreach($check_plugins as $plugin_item)
+			{
+				$plugin_path_prefix = explode('/', $plugin_item);
+				if (isset($this->se_cfg['options'][$plugin_path_prefix[0]]))
+					$this->se_cfg['options'][$plugin_path_prefix[0]]['status'] = true;
+			}
+		}
+	}
+	function se_show_options_form()
+	{
+		$this->display_instructions('options');
+				
+		?>			
+		<form name="option_exclusion" id="option_exclusion" 
+			action="?page=se_manage_options" method="post">
+			<table class="widefat" width="80%" cellpadding="3" cellspacing="3" border="0">
+			<thead>
+	        <tr>
+	        	<th class="name"><?php _e('Plugin Name') ?></th>
+	        	<th class="description"><?php _e('Description of Functionality') ?></th>
+	        	<th class="actions"><?php _e('Actions') ?></th>
+	        </tr>
+			</thead>
+			<tbody>
+			<?php
+			$class = "";
+			foreach ($this->se_cfg['options'] as $option_key => $options_set)
+			{
+				//echo "options_set<pre>"; print_r($options_set); echo "</pre>";
+				
+				$class = ('alternate' == $class) ? '' : 'alternate';
+				?>
+				<tr <?php if (strlen($class)) echo "class='".$class."'" ?>>
+					<td class="name"><a href="<?php echo $options_set['url'] ?>"><?php echo $options_set['name'] ?></a></td>
+					<td class="description"><?php echo $options_set['desc'] ?></td>
+					<td class="actions" nowrap="nowrap">
+						<?php
+						if ($options_set['active'] == true)
+						{
+							if ($options_set['status'] !== true)
+							{
+								?>This plugin is not installed or not active.<?php
+							}
+							else
+							{
+								if (count($options_set['actions']))
+								{
+									foreach($options_set['actions'] as $option_actions_idx => $option_actions_set)
+									{
+										?>
+										<input type="checkbox" 
+											name="se_admin[options][<?php echo $option_key; ?>][actions][<?php 
+												echo $option_actions_idx; ?>][update]"
+											<?php if ($option_actions_set['update'] === true) 
+												echo "checked='checked'"; ?> /> <?php echo $option_actions_set['desc']?><br />
+										<?php
+									}
+								}
+							}
+						}	
+						?>
+
+					</td>
+				<tr>					
+				<?php
+			}
+			?>
+			<tr>
+				<td colspan="2">
+					<p class="submit">
+						<input type="hidden" name="se_admin[action]" value="save_options" />
+						<input type="submit" name="submit"  value="<?php _e('Save Changes &raquo;') ?>" />
+					</p>
+				</td>
+			</tr>
+			
+			</tbody>
+			</table>
+			
+		</form>
+		<?php
+	}
+	
+	
+	// END CONFIG FUNCTIONS
+	/////////////////////////////////////////////////////////////////
+	
 	
 	
 	function se_filters($query) 
@@ -1350,6 +1567,24 @@ class SimplyExclude
 		<?php	
 		*/
 		}
+		else if ($type == "options")
+		{
+			?>
+			<p>The Simply Exclude plugin now works with a few other plugins. Check the box for support of the listed third 
+				party plugins options below</p>
+			<p>When you update this section you will then also need to go back into the Simply Exclude Category or Pages section and re-save the settings. This re-save will then update the third-party plugin settings with the update excluded values. On the respective Category or Pages sections of Simply Exclude you can use either include or exclude action.</p>
+			<p style="color: #ff0000">Warning: Once enabled it is suggested you make edits to the exclusion/inclusion via Simply Exclude. Any PAge or Category exclusion made in the third-party plugins will be over written by changed from Simply Exclude. </p>
+			<?php
+		
+		/*
+		?>
+		<p>This is a placeholder section for Pages Exclusion. Since WordPress does not yet include Pages in searches this section is pointless. From various sources version 2.6 of WordPress should include native support for including Pages in search results. Look for changes to this plugin shortly after that.</p>
+		<?php	
+		*/
+		}
+
+
+
 	}
 	
 	function add_page_exclude_sidebar_dbx()
@@ -1413,8 +1648,305 @@ class SimplyExclude
 
 		$this->se_save_config();				
 	}
+	
+	
+	// THIRD PARTY FUNCTIONS
+	/////////////////////////////////////////////////////////////////
+		
+/*
+	function se_check_google_xml_sitemap_exclude_cats()
+	{
+		return;
+		
+		
+		if (!$this->GA_generatorObject) return;
+
+		if ((!$this->GA_generatorObject->_options["sm_b_exclude_cats"])
+		 || (count($this->GA_generatorObject->_options["sm_b_exclude_cats"]) == 0))
+			return;
+
+		// We only care about 
+		if ((!isset($this->se_cfg['cats']['actions']['is_search']))
+		 || ($this->se_cfg['cats']['actions']['is_search'] != "e"))
+			return;
+
+		if (!isset($this->se_cfg['cats']['is_search']))
+			$this->se_cfg['cats']['is_search'] = array();
+
+		foreach($this->GA_generatorObject->_options["sm_b_exclude_cats"] as $google_sitemap_cat_id) {
+			$this->se_cfg['cats']['is_search'][$google_sitemap_cat_id] = "on"; 
+
+		}
+	}
+*/
+	function se_update_google_xml_sitemap_exclude_cats()
+	{
+		// If the user didn't elect to sync the excluded page with the Google Xml Sitemap -- return;
+		if ((!isset($this->se_cfg['options']['google-sitemap-generator']['actions']['categories']['update']))
+		 || ($this->se_cfg['options']['google-sitemap-generator']['actions']['categories']['update'] !== true))
+			return;
+
+		unset($this->GA_generatorObject->_options['sm_b_exclude_cats']);
+		$this->GA_generatorObject->_options['sm_b_exclude_cats'] = array();
+
+		if ($_REQUEST['se_admin']['cats']['actions']['is_search'] == "e")
+		{		
+			foreach($_REQUEST['se_admin']['cats']['is_search'] as $cat_idx => $cal_status)
+			{
+				if (array_search($cat_idx, $this->GA_generatorObject->_options['sm_b_exclude_cats']) === false)
+					$this->GA_generatorObject->_options['sm_b_exclude_cats'][] = $cat_idx;
+			}
+		}
+		else
+		{
+			$all_cat_ids = get_all_category_ids();
+			if (!$all_cat_ids)
+				$all_cat_ids = array();
+
+			foreach($all_cat_ids as $cat_idx)
+			{
+				if (!isset($_REQUEST['se_admin']['cats']['is_search'][$cat_idx]))
+					$this->GA_generatorObject->_options['sm_b_exclude_cats'][] = $cat_idx;
+			}
+		}
+		update_option("sm_options", $this->GA_generatorObject->_options);
+	}		
+
+
+/*
+	function se_check_google_sitemap_exclude_pages()
+	{
+		return;
+
+		if (!$this->GA_generatorObject) return;
+
+		if ((!$this->GA_generatorObject->_options["sm_b_exclude"])
+		 || (count($this->GA_generatorObject->_options["sm_b_exclude"]) == 0))
+			return;
+
+		// We only care about 
+		if ((!isset($this->se_cfg['pages']['actions']['is_search']))
+		 || ($this->se_cfg['pages']['actions']['is_search'] != "e"))
+			return;
+
+		if (!isset($this->se_cfg['pages']['is_search']))
+			$this->se_cfg['pages']['is_search'] = array();
+
+		$all_page_ids = get_all_page_ids();
+		if (!$all_page_ids)
+			$all_page_ids = array();
+
+		foreach($this->GA_generatorObject->_options["sm_b_exclude"] as $google_sitemap_page_id) {
+
+			if (array_search($google_sitemap_page_id, $all_page_ids) === false)
+				continue;
+
+			if (count($this->se_cfg['pages']['is_search'])) {
+				if (!isset($this->se_cfg['pages']['is_search'][$google_sitemap_page_id])) {
+					$this->se_cfg['pages']['is_search'][$google_sitemap_page_id] = "on";
+				}
+			}
+			else 
+				$this->se_cfg['pages']['is_search'][$google_sitemap_page_id] = "on";
+		}			
+		if (count($this->se_cfg['pages']))
+			asort($this->se_cfg['pages']);
+	}
+*/
+	function se_update_google_xml_sitemap_exclude_pages()
+	{
+		if ((!isset($this->se_cfg['options']['google-sitemap-generator']['actions']['pages']['update']))
+		 || ($this->se_cfg['options']['google-sitemap-generator']['actions']['pages']['update'] !== true))
+			return;
+
+		// If both arrays are empty then we don't have anything to do -- return
+		//echo "sm_b_exclude<pre>"; print_r($this->GA_generatorObject->_options["sm_b_exclude"]); echo "</pre>";
+		//exit;
+		
+		if ((count($this->GA_generatorObject->_options["sm_b_exclude"]) == 0)
+ 		 && (count($_REQUEST['se_admin']['pages']['is_search']) == 0))
+			return;
+
+		$all_page_ids = get_all_page_ids();
+		if (!$all_page_ids)
+			$all_page_ids = array();
+
+		if ($_REQUEST['se_admin']['pages']['actions']['is_search'] == "e") {
+
+			// Remove all Pages from the Google XML Sitemap exclude array. Then we will add the new ones back. 
+			foreach($this->GA_generatorObject->_options["sm_b_exclude"] as $idx => $google_sitemap_page_id) {
+
+				if (array_search($google_sitemap_page_id, $all_page_ids) !== false)
+					unset($this->GA_generatorObject->_options["sm_b_exclude"][$idx]);
+			}
+			foreach($_REQUEST['se_admin']['pages']['is_search'] as $se_pages_idx => $se_page_status)
+			{
+				if (array_search($se_pages_idx, $this->GA_generatorObject->_options["sm_b_exclude"]) === false) 
+					$this->GA_generatorObject->_options["sm_b_exclude"][] = $se_pages_idx;
+			}
+		}
+		else {
+
+			foreach($this->GA_generatorObject->_options["sm_b_exclude"] as $idx => $google_sitemap_page_id) {
+				if (array_search($google_sitemap_page_id, $all_page_ids) !== false)
+					unset($this->GA_generatorObject->_options["sm_b_exclude"][$idx]);
+			}		
+
+			foreach($all_page_ids as $page_idx => $page_id) {
+				if (array_key_exists($page_id, $_REQUEST['se_admin']['pages']['is_search']) === false)
+				{
+					if (array_search($page_id, $this->GA_generatorObject->_options["sm_b_exclude"]) === false) 
+						$this->GA_generatorObject->_options["sm_b_exclude"][] = $page_id;
+				}
+			}
+		}
+		//echo "GA_generatorObject : after<pre>"; print_r($this->GA_generatorObject->_options["sm_b_exclude"]); echo "</pre>";
+
+		update_option("sm_options", $this->GA_generatorObject->_options);
+	}	
+	
+		
+	function se_update_search_unleashed_exclude_cats()
+	{
+		if ((!isset($this->se_cfg['options']['search-unleashed']['actions']['categories']['update']))
+		 || ($this->se_cfg['options']['search-unleashed']['actions']['categories']['update'] !== true))
+			return;
+		
+		$search_unleashed_options = get_option( 'search_unleashed', $options );
+		if (strlen($search_unleashed_options['exclude_cat']))
+		{
+			$search_unleashed_exclude = explode(',', $search_unleashed_options['exclude_cat']);
+			if ($search_unleashed_exclude)
+			{
+				foreach($search_unleashed_exclude as $ex_idx => $ex_item)
+				{
+					$search_unleashed_exclude[$ex_idx] = trim($ex_item);
+				}
+			}
+			else
+				$search_unleashed_exclude = array();			
+		}
+		else
+			$search_unleashed_exclude = array();
+
+		$all_cat_ids = get_all_category_ids();
+		if (!$all_cat_ids)
+			$all_cat_ids = array();
+			
+			
+		if ($_REQUEST['se_admin']['cats']['actions']['is_search'] == "e")
+		{	
+			foreach($search_unleashed_exclude as $idx => $search_exclude_cat_id) {
+				if (array_search($search_exclude_cat_id, $all_cat_ids) !== false)
+					unset($search_unleashed_exclude[$idx]);
+			}
+
+			foreach($_REQUEST['se_admin']['cats']['is_search'] as $se_cat_idx => $se_cat_status)
+			{
+				if (array_search($se_cat_idx, $search_unleashed_exclude) === false) 
+					$search_unleashed_exclude[] = $se_cat_idx;
+			}
+			
+		}
+		else
+		{			
+			foreach($search_unleashed_exclude as $idx => $search_exclude_cat_id) {
+				if (array_search($search_exclude_cat_id, $all_cat_ids) !== false)
+					unset($search_unleashed_exclude[$idx]);
+			}
+			
+			foreach($all_cat_ids as $cat_idx => $cat_id) {
+				if (array_key_exists($cat_id, $_REQUEST['se_admin']['cats']['is_search']) === false)
+				{
+					if (array_search($cat_id, $search_unleashed_exclude) === false) 
+						$search_unleashed_exclude[] = $cat_id;
+				}
+			}
+		}
+		$search_unleashed_options['exclude_cat'] = "";
+		if (count($search_unleashed_exclude))
+		{
+			$search_unleashed_options['exclude_cat'] = implode(',', $search_unleashed_exclude);
+		}
+		update_option( 'search_unleashed', $search_unleashed_options );
+	}
+	
+	function se_update_search_unleashed_exclude_pages()
+	{
+		if ((!isset($this->se_cfg['options']['search-unleashed']['actions']['pages']['update']))
+		 || ($this->se_cfg['options']['search-unleashed']['actions']['pages']['update'] !== true))
+			return;
+		
+		$search_unleashed_options = get_option( 'search_unleashed', $options );
+		
+		if (strlen($search_unleashed_options['exclude']))
+		{
+			$search_unleashed_exclude = explode(',', $search_unleashed_options['exclude']);
+			if ($search_unleashed_exclude)
+			{
+				foreach($search_unleashed_exclude as $ex_idx => $ex_item)
+				{
+					$search_unleashed_exclude[$ex_idx] = trim($ex_item);
+				}
+			}
+			else
+				$search_unleashed_exclude = array();			
+		}
+		else
+			$search_unleashed_exclude = array();
+		
+		
+		$all_page_ids = get_all_page_ids();
+		if (!$all_page_ids)
+			$all_page_ids = array();
+		
+		if ($_REQUEST['se_admin']['pages']['actions']['is_search'] == "e") {
+
+			// Remove all Pages from the Google XML Sitemap exclude array. Then we will add the new ones back. 
+			foreach($search_unleashed_exclude as $idx => $search_exclude_page_id) {
+				if (array_search($search_exclude_page_id, $all_page_ids) !== false)
+					unset($search_unleashed_exclude[$idx]);
+			}
+			
+			foreach($_REQUEST['se_admin']['pages']['is_search'] as $se_pages_idx => $se_page_status)
+			{
+				if (array_search($se_pages_idx, $search_unleashed_exclude) === false) 
+					$search_unleashed_exclude[] = $se_pages_idx;
+			}
+		}
+		else {
+
+			foreach($search_unleashed_exclude as $idx => $search_exclude_page_id) {
+				if (array_search($search_exclude_page_id, $all_page_ids) !== false)
+					unset($search_unleashed_exclude[$idx]);
+			}		
+
+			foreach($all_page_ids as $page_idx => $page_id) {
+				if (array_key_exists($page_id, $_REQUEST['se_admin']['pages']['is_search']) === false)
+				{
+					if (array_search($page_id, $search_unleashed_exclude) === false) 
+						$search_unleashed_exclude[] = $page_id;
+				}
+			}
+		}
+		
+		$search_unleashed_options['exclude'] = "";
+		if (count($search_unleashed_exclude))
+		{
+			$search_unleashed_options['exclude'] = implode(',', $search_unleashed_exclude);
+		}
+		update_option( 'search_unleashed', $search_unleashed_options );
+	}
 }
 $simplyexclude = new SimplyExclude();
+
+// Need to determine of the site uses the Google XML Sitemap Plugin
+if (is_file(WP_PLUGIN_DIR . '/google-sitemap-generator/sitemap-core.php'))
+{
+	include (WP_PLUGIN_DIR. '/google-sitemap-generator/sitemap-core.php');
+	$simplyexclude->GA_generatorObject = new GoogleSitemapGenerator();
+	$simplyexclude->GA_generatorObject->LoadOptions();
+}
 
 /*
 function myBlogPostsFilter($query) 
