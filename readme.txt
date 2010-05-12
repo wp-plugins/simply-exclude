@@ -3,8 +3,8 @@ Contributors: Paul Menard
 Donate link: http://www.codehooligans.com
 Tags: admin, posts, pages, categories, tags, exclude, include, is_front, is_archive, is_search, is_feed
 Requires at least: 2.6
-Tested up to: 2.8.5
-Stable tag: 1.7.6
+Tested up to: 2.9.2
+Stable tag: 1.7.7
 
 == Description ==
 
@@ -17,7 +17,7 @@ is_feed - When a Feed is viewed/requested.
 
 Note: Page exclusions only work for search.
 
-[Plugin Homepage](http://www.codehooligans.com/2008/04/27/simply-exclude-plugin/ "SimplyExclude Plugin for WordPress")
+[Plugin Homepage](http://www.codehooligans.com/projects/wordpress/simply-exclude/ "SimplyExclude Plugin for WordPress")
 
 == Installation ==
 
@@ -48,6 +48,10 @@ At the time (version 1.6.1) the plugin only effects Pages included in the tradit
 
 
 == Changelog == 
+
+= 1.7.7 =
+2010-05-12
+Fixes: Mainly bug fixes and code cleanup. Most bugs discovered via using WP_DEBUG for uninitialized variables. 
 
 = 1.7.6 =
 2009-11-14 

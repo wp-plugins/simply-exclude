@@ -1,10 +1,10 @@
 <?php
 /*
 Plugin Name: Simply Exclude
-Plugin URI: http://www.codehooligans.com/2008/04/27/simply-exclude-plugin/
+Plugin URI: http://www.codehooligans.com/projects/wordpress/simply-exclude/
 Description: Provides an interface to selectively exclude/include categories, tags and page from the 4 actions used by WordPress. is_front, is_archive, is_search, is_feed.
 Author: Paul Menard
-Version: 1.7.6
+Version: 1.7.7
 Author URI: http://www.codehooligans.com
 
 Revision history
@@ -406,61 +406,77 @@ class SimplyExclude
 	
 	function se_manage_categories()
 	{
+		?><div class="wrap"><?php
 		if (isset($_REQUEST['se_admin']))
 		{
+			// echo "_REQUEST<pre>"; print_r($_REQUEST); echo "</pre>";			
 			$se_admin = $_REQUEST['se_admin'];
-			$se_admin['action'] = $_GET['se_admin']['action'];
+			//$se_admin['action'] = $_GET['se_admin']['action'];
+			$this->se_display_categories_panel($se_admin);		
 		}
-		?><div class="wrap"><?php
-		$this->se_display_categories_panel($se_admin);		
+		else
+			$this->se_display_categories_panel();		
 		?></div><?php
 	}
 
 	function se_manage_tags()
 	{
+		?><div class="wrap"><?php
 		if (isset($_REQUEST['se_admin']))
 		{
+			//echo "_REQUEST<pre>"; print_r($_REQUEST); echo "</pre>";			
 			$se_admin = $_REQUEST['se_admin'];
-			$se_admin['action'] = $_GET['se_admin']['action'];
+			//$se_admin['action'] = $_GET['se_admin']['action'];
+			$this->se_display_tags_panel($se_admin);
 		}
-		?><div class="wrap"><?php
-		$this->se_display_tags_panel($se_admin);
+		else
+			$this->se_display_tags_panel();
+		
 		?></div><?php
 	}
 
 	function se_manage_authors()
 	{
+		?><div class="wrap"><?php
 		if (isset($_REQUEST['se_admin']))
 		{
+			//echo "_REQUEST<pre>"; print_r($_REQUEST); echo "</pre>";			
 			$se_admin = $_REQUEST['se_admin'];
-			$se_admin['action'] = $_GET['se_admin']['action'];
+			//$se_admin['action'] = $_GET['se_admin']['action'];
+			$this->se_display_authors_panel($se_admin);
 		}
-		?><div class="wrap"><?php
-		$this->se_display_authors_panel($se_admin);
+		else		
+			$this->se_display_authors_panel();
 		?></div><?php
 	}
 
 	function se_manage_pages()
 	{
+		?><div class="wrap"><?php
 		if (isset($_REQUEST['se_admin']))
 		{
+			//echo "_REQUEST<pre>"; print_r($_REQUEST); echo "</pre>";			
 			$se_admin = $_REQUEST['se_admin'];
-			$se_admin['action'] = $_GET['se_admin']['action'];
+			//$se_admin['action'] = $_GET['se_admin']['action'];
+			$this->se_display_pages_panel($se_admin);
 		}
-		?><div class="wrap"><?php
-		$this->se_display_pages_panel($se_admin);
+		else
+			$this->se_display_pages_panel();
 		?></div><?php
 	}
 	
 	function se_manage_options()
 	{
+		?><div class="wrap"><?php
 		if (isset($_REQUEST['se_admin']))
 		{
+			//echo "_REQUEST<pre>"; print_r($_REQUEST); echo "</pre>";
 			$se_admin = $_REQUEST['se_admin'];
-			$se_admin['action'] = $_GET['se_admin']['action'];
+			//$se_admin['action'] = $_REQUEST['se_admin']['action'];
+			$this->se_display_options_panel($se_admin);
 		}
-		?><div class="wrap"><?php
-		$this->se_display_options_panel($se_admin);
+		else
+			$this->se_display_options_panel();
 		?></div><?php
 		
 	}
@@ -517,7 +533,7 @@ class SimplyExclude
 		
 	// CATEGORY FUNCTIONS
 	/////////////////////////////////////////////////////////////////
-	function se_display_categories_panel($se_admin)
+	function se_display_categories_panel($se_admin='')
 	{
 		//$this->se_check_google_xml_sitemap_exclude_cats();
 		//echo "_REQUEST<pre>"; print_r($_REQUEST); echo "</pre>";
@@ -525,7 +541,7 @@ class SimplyExclude
 		
 		<h2>Manage Category Exclusions</h2>
 		<?php
-		if ($se_admin['action'] == "save_categories")
+		if ((isset($se_admin['action'])) && ($se_admin['action'] == "save_categories"))
 		{
 			$this->se_update_google_xml_sitemap_exclude_cats();
 			$this->se_update_search_unleashed_exclude_cats();
@@ -592,6 +608,7 @@ class SimplyExclude
 				</thead>
 				<tbody>
 				<?php
+				$class = "";
 				foreach ($this->default_IsActions['cats'] as $action_key => $action_val)
 				{
 					$class = ('alternate' == $class) ? '' : 'alternate';
@@ -602,11 +619,13 @@ class SimplyExclude
 						<td class="inc-excl">
 							<input type="radio" 
 								name="se_admin[cats][actions][<?php echo $action_key ?>]" value="i" 
-								<?php if ($this->se_cfg['cats']['actions'][$action_key] == 'i') 
+								<?php if ((isset($this->se_cfg['cats']['actions'][$action_key]))
+									   && ($this->se_cfg['cats']['actions'][$action_key] == 'i')) 
 									echo "checked='checked'"; ?> /> Include only<br />
 							<input type="radio" 
 								name="se_admin[cats][actions][<?php echo $action_key ?>]" value="e" 
-								<?php if ($this->se_cfg['cats']['actions'][$action_key] == 'e') 
+								<?php if ((isset($this->se_cfg['cats']['actions'][$action_key]))
+									   && ($this->se_cfg['cats']['actions'][$action_key] == 'e')) 
 									echo "checked='checked'"; ?> /> Exclude
 						</td>
 					<tr>
@@ -626,6 +645,7 @@ class SimplyExclude
 				</thead>
 				<tbody>
 				<?php
+					$class="";
 					foreach($this->categories as $cat_info)
 					{	
 						$class = ('alternate' == $class) ? '' : 'alternate';
@@ -684,7 +704,8 @@ class SimplyExclude
 				name="se_admin[cats][<?php echo $action_key ?>][<?php echo $cat_id ?>]"
 				id="cats-<?php echo $action_key ?>-<?php echo $cat_id ?>"
 				<?php
-				if ($this->se_cfg['cats'][$action_key][$cat_id] == "on")
+
+				if ((isset($this->se_cfg['cats'][$action_key][$cat_id])) && ($this->se_cfg['cats'][$action_key][$cat_id] == "on"))
 					echo "checked='checked' ";
 				?> />
 			<?php
@@ -697,12 +718,12 @@ class SimplyExclude
 
 	// TAG FUNCTIONS
 	/////////////////////////////////////////////////////////////////
-	function se_display_tags_panel($se_admin)
+	function se_display_tags_panel($se_admin='')
 	{
 		?>
 		<h2>Manage Tag Exclusions</h2>
 		<?php
-		if ($se_admin['action'] == "save_tags")
+		if ((isset($se_admin['action'])) && ($se_admin['action'] == "save_tags"))
 		{
 			if (isset($se_admin['tags']))
 				$this->se_cfg['tags'] = $se_admin['tags'];
@@ -722,7 +743,7 @@ class SimplyExclude
 	function se_load_tags()
 	{
 		global $wpdb;
-		if (!$this->tags)
+		if (!isset($this->tags))
 		{
 			$this->tags = get_tags('hide_empty=0&orderby=name&order=ASC');			
 		}
@@ -749,6 +770,7 @@ class SimplyExclude
 				</thead>
 				<tbody>
 				<?php
+				$class="";
 				foreach ($this->default_IsActions['tags'] as $action_key => $action_val)
 				{
 					$class = ('alternate' == $class) ? '' : 'alternate';
@@ -809,7 +831,6 @@ class SimplyExclude
 		}
 	}
 	
-	
 	function se_show_tag_item_row($tag_info, $class)
 	{
 		?>
@@ -832,7 +853,7 @@ class SimplyExclude
 				name="se_admin[tags][<?php echo $action_key ?>][<?php echo $tag_id ?>]"
 				id="tags-<?php echo $action_key ?>-<?php echo $tag_id ?>"
 				<?php
-				if ($this->se_cfg['tags'][$action_key][$tag_id] == "on")
+				if ((isset($this->se_cfg['tags'][$action_key][$tag_id])) && ($this->se_cfg['tags'][$action_key][$tag_id] == "on"))
 					echo "checked='checked' ";
 				?> />
 			<?php
@@ -846,12 +867,12 @@ class SimplyExclude
 
 	// AUTHOR FUNCTIONS
 	/////////////////////////////////////////////////////////////////
-	function se_display_authors_panel($se_admin)
+	function se_display_authors_panel($se_admin='')
 	{
 		?>
 		<h2>Manage Author Exclusions</h2>
 		<?php
-		if ($se_admin['action'] == "save_authors")
+		if ((isset($se_admin['action'])) && ($se_admin['action'] == "save_authors"))
 		{
 			if (isset($se_admin['authors']))
 				$this->se_cfg['authors'] = $se_admin['authors'];
@@ -871,7 +892,7 @@ class SimplyExclude
 	function se_load_authors()
 	{
 		global $wpdb;
-		if (!$this->authors)
+		if (!isset($this->authors))
 		{
 			$this->authors = get_users_of_blog();
 		}
@@ -897,6 +918,7 @@ class SimplyExclude
 				</thead>
 				<tbody>
 				<?php
+				$class="";
 				foreach ($this->default_IsActions['authors'] as $action_key => $action_val)
 				{
 					$class = ('alternate' == $class) ? '' : 'alternate';
@@ -979,7 +1001,8 @@ class SimplyExclude
 				name="se_admin[authors][<?php echo $action_key ?>][<?php echo $author_id ?>]"
 				id="authors-<?php echo $action_key ?>-<?php echo $author_id ?>"
 				<?php
-				if ($this->se_cfg['authors'][$action_key][$author_id] == "on")
+				if ((isset($this->se_cfg['authors'][$action_key][$author_id])) 
+				 && ($this->se_cfg['authors'][$action_key][$author_id] == "on"))
 					echo "checked='checked' ";
 				?> />
 			<?php
@@ -991,13 +1014,13 @@ class SimplyExclude
 
 	// PAGE FUNCTIONS
 	/////////////////////////////////////////////////////////////////
-	function se_display_pages_panel($se_admin)
+	function se_display_pages_panel($se_admin='')
 	{
 		//$this->se_check_google_sitemap_exclude_pages();
 		?>
 		<h2>Manage Page Exclusions</h2>
 		<?php
-		if ($se_admin['action'] == "save_pages")
+		if ((isset($se_admin['action'])) && ($se_admin['action'] == "save_pages"))
 		{
 			if (isset($se_admin['pages']))
 			{
@@ -1074,12 +1097,14 @@ class SimplyExclude
 						<td class="inc-excl">
 							<input type="radio" 
 								name="se_admin[pages][actions][<?php echo $action_key ?>]" value="i" 
-								<?php if ($this->se_cfg['pages']['actions'][$action_key] == 'i') 
+								<?php if ((isset($this->se_cfg['pages']['actions'][$action_key]))
+									    && ($this->se_cfg['pages']['actions'][$action_key] == 'i')) 
 									echo "checked='checked'"; ?> /> Include only<br />
 							
 							<input type="radio" 
 								name="se_admin[pages][actions][<?php echo $action_key ?>]" value="e" 
-								<?php if ($this->se_cfg['pages']['actions'][$action_key] == 'e') 
+								<?php if ((isset($this->se_cfg['pages']['actions'][$action_key]))
+									   && ($this->se_cfg['pages']['actions'][$action_key] == 'e')) 
 									echo "checked='checked'"; ?> /> Exclude
 						</td>
 					<tr>
@@ -1236,7 +1261,7 @@ class SimplyExclude
 	
 	// OPTIONS FUNCTIONS
 	/////////////////////////////////////////////////////////////////
-	function se_display_options_panel($se_admin)
+	function se_display_options_panel($se_admin='')
 	{
 		?>
 		<h2>Manage Simply Exclude Options and Third-Party hooks</h2>
@@ -1247,7 +1272,7 @@ class SimplyExclude
 
 		$this->se_load_options();
 			
-		if ($se_admin['action'] == "save_options")
+		if ((isset($se_admin['action'])) && ($se_admin['action'] == "save_options"))
 		{
 			if (isset($se_admin['options']))
 			{
@@ -1488,6 +1513,7 @@ class SimplyExclude
 
 	function se_listify_ids($action, $ids)
 	{
+		$id_list = "";
 		if ($action == "e")
 			$action_value = "-";
 		else
@@ -1632,10 +1658,10 @@ class SimplyExclude
 
 	function save_page_exclude_answer()
 	{
-		if (!$_REQUEST['post_ID'])
+		if (!isset($_REQUEST['post_ID']))
 			return;
 		
-		if (!$_REQUEST['se_page_exclude'])
+		if (!isset($_REQUEST['se_page_exclude']))
 			return;
 		
 		$post_id = 	$_REQUEST['post_ID'];
