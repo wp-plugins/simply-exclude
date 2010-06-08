@@ -2,22 +2,10 @@
 /*
 Plugin Name: Simply Exclude
 Plugin URI: http://www.codehooligans.com/projects/wordpress/simply-exclude/
-Description: Provides an interface to selectively exclude/include categories, tags and page from the 4 actions used by WordPress. is_front, is_archive, is_search, is_feed.
+Description: Provides an interface to selectively exclude/include categories, tags and page from the 4 actions used by WordPress. is_front, is_archive, is_search, is_feed, is_front.
 Author: Paul Menard
-Version: 1.7.7
+Version: 1.7.8
 Author URI: http://www.codehooligans.com
-
-Revision history
-1.0 - 2007-11-20: Initial release
-1.1 - 2008-12-15: Added logic to work with WP version greater than 2.2
-1.5 - 20008-04-27 Fixed display issues. Changes 'List' to 'Archive'. Added tags inclusion/exclusion login. Works only with WP 2.3 and greater.
-1.6 - 2008-05-22 Fixed various items. Added format display for Categories and Pages to reveal heirarchy, Disable plugin functions when searching in admin. This also corrected a display exclusion bug when showing categories and pages. 
-1.7 - 2008-05-29 Added Author to the Include/Exclude logic. Now you can exclude Author's Posts from Search, Home, RSS, Archive.
-1.7.1 - 2008-07-16 Fixed an issue with WP 2.6 where it automatically decided to unserialize the option data structure. 
-1.7.2 - 2009-02-05 Fixed some PHP warning by checking variable is set. Also added style to 2.7 interface. 
-1.7.2.1 - 2009-07-01 Fixed some PHP warning by checking variable is set. Also added style for 2.8 interface. Very minor changes. 
-1.7.5 - 2009-07015 Fixed some PHP warning by checking variable is set. Also added style for 2.8 interface. Very minor changes. 
-1.7.6 - 2009-11-14 Fixes: Issue with the Pages exclusion. Many users reporting a permissions issue. Additions: Added handler logic to interface with two other plugins. One of the often used Google XML Sitemaps. When setting Page or Category exclusions you now have the option to update the Google XML Sitemaps exclude pages and categories automatically. The other plugin is Search Unleashed. 
 
 */
 
