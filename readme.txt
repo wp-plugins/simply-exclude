@@ -1,10 +1,10 @@
 === Simply Exclude ===
 Contributors: Paul Menard
-Donate link: http://www.codehooligans.com
+Donate link: http://www.codehooligans.com/donations/
 Tags: admin, posts, pages, categories, tags, exclude, include, is_front, is_archive, is_search, is_feed
-Requires at least: 2.6
+Requires at least: 2.8
 Tested up to: 2.9.2
-Stable tag: 1.7.7
+Stable tag: 1.7.8
 
 == Description ==
 
@@ -48,6 +48,12 @@ At the time (version 1.6.1) the plugin only effects Pages included in the tradit
 
 
 == Changelog == 
+
+= 1.7.8 =
+Fixes: Mainly bug fixes and code cleanup. Patched code based on reported issues with the WP Gallery shortcode and the new WP 3.0 RC1 menus
+Additions: Added some logic to Categories and Tags to work with Exclude/Include when using the WordPress Category or Tag Cloud Widgets. 
+
+Coming Soon: Have been working on a new version of Simply Exclude that will dynamically work with the new Taxonomy system. No longer will we be restricted to excluding just categories and tags. But any registered Taxonomy now can be tweaked. This will be a major code rewrite and will be named SE 2.0. Coming this summer!
 
 = 1.7.7 =
 2010-05-12

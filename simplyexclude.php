@@ -43,7 +43,7 @@ class SimplyExclude
 		$this->in_admin = false;
 		
 		$this->admin_menu_label	= "Simply Exclude";
-		$this->options_key			= "simplyexclude";
+		$this->options_key		= "simplyexclude";
 
 		$this->se_load_config();
 
@@ -63,13 +63,28 @@ class SimplyExclude
 			add_action('init', array(&$this,'se_install'));
 			
 		// Used to limit the categories displayed on the home page. Simple
-		add_filter('pre_get_posts', array(&$this,'se_filters'));
+		//add_filter('pre_get_posts', array(&$this,'se_filters'), 99, 1);
+		add_action('pre_get_posts', array(&$this,'se_filters'));
 		
-		add_action('save_post', array(&$this,'save_page_exclude_answer'));		
+		add_action('save_post', array(&$this,'save_page_exclude_answer'));	
+		
+		//echo "se_cfg<pre>"; print_r($this->se_cfg); echo "</pre>";
+		if ((floatval($this->wp_version) >= "2.8.0") && (!is_admin()))
+		{
+			if ( (isset($this->se_cfg['cats']['extra']['wp_list_categories']))
+			 && ($this->se_cfg['cats']['extra']['wp_list_categories'] == 'Yes') )
+			{
+				add_filter('widget_categories_dropdown_args', array(&$this,'se_categories_dropdown_args_proc'));	
+				add_filter('widget_categories_args', array(&$this,'se_categories_dropdown_args_proc'));	
+			}
 
-		//add_filter('posts_request', array(&$this,'posts_request_proc'));
+			if ( (isset($this->se_cfg['tags']['extra']['wp_tag_cloud']))
+			 && ($this->se_cfg['tags']['extra']['wp_tag_cloud'] == 'Yes'))
+			{
+				add_filter('widget_tag_cloud_args', array(&$this,'se_widget_tag_cloud_args_proc'));	
+			}
+		}
 	}
-
 
 	function posts_request_proc($request)
 	{
@@ -317,21 +332,22 @@ class SimplyExclude
     	//add_options_page('Simply Exclude', 'Simply Exclude', 8, 
 		//	$this->options_key, array(&$this, 'se_manage_page'));
 		
-		add_menu_page( 'Simply Exclude', 'Simply Exclude', 7, 'se_manage_categories', array(&$this, 'se_manage_categories'));
-
-		add_submenu_page( 'se_manage_categories', 'Exclude Categories', 'Exclude Categories', 7, 
+		add_menu_page( 'Simply Exclude', 'Simply Exclude', 'manage_options', 
 			'se_manage_categories', array(&$this, 'se_manage_categories'));
 
-		add_submenu_page( 'se_manage_categories', 'Exclude Tags', 'Exclude Tags', 7, 
+		add_submenu_page( 'se_manage_categories', 'Exclude Categories', 'Exclude Categories', 'manage_options', 
+			'se_manage_categories', array(&$this, 'se_manage_categories'));
+
+		add_submenu_page( 'se_manage_categories', 'Exclude Tags', 'Exclude Tags', 'manage_options', 
 			'se_manage_tags', array(&$this, 'se_manage_tags'));
 
-		add_submenu_page( 'se_manage_categories', 'Exclude Authors', 'Exclude Authors', 7, 
+		add_submenu_page( 'se_manage_categories', 'Exclude Authors', 'Exclude Authors', 'manage_options', 
 			'se_manage_authors', array(&$this, 'se_manage_authors'));
 
-		add_submenu_page( 'se_manage_categories', 'Exclude Pages', 'Exclude Pages', 7, 
+		add_submenu_page( 'se_manage_categories', 'Exclude Pages', 'Exclude Pages', 'manage_options', 
 			'se_manage_pages', array(&$this, 'se_manage_pages'));
 
-		add_submenu_page( 'se_manage_categories', 'Exclude Options', 'Exclude Options', 7, 
+		add_submenu_page( 'se_manage_categories', 'Exclude Options', 'Exclude Options', 'manage_options', 
 			'se_manage_options', array(&$this, 'se_manage_options'));
 
 	}
@@ -631,10 +647,30 @@ class SimplyExclude
 					<tr>
 					<?php
 				}
+
+				$class = ('alternate' == $class) ? '' : 'alternate';
+
+				if (!isset($this->se_cfg['cats']['extra']['wp_list_categories']))
+					$this->se_cfg['cats']['extra']['wp_list_categories'] == 'No';
 				?>
+				<tr <?php if (strlen($class)) echo "class='".$class."'" ?>>
+					<td class="action">Widget</td>
+					<td class="description">Exclude from WordPress List Category Widget<br />Any categories set as part of the 'Archive' acton for Include/Exclude will be Included/Excluded via the WordPress List Categories Widget output</td>
+					<td class="inc-excl">
+						<input type="radio" name="se_admin[cats][extra][wp_list_categories]" value="Yes" 
+							<?php if ((isset($this->se_cfg['cats']['extra']['wp_list_categories']))
+								   && ($this->se_cfg['cats']['extra']['wp_list_categories'] == 'Yes')) 
+								echo "checked='checked'"; ?> /> Yes<br />
+						<input type="radio" name="se_admin[cats][extra][wp_list_categories]" value="No" 
+							<?php if ((isset($this->se_cfg['cats']['extra']['wp_list_categories']))
+								   && ($this->se_cfg['cats']['extra']['wp_list_categories'] == 'No')) 
+								echo "checked='checked'"; ?> /> No
+					</td>
+				<tr>
 				</tbody>
 				</table>
 				<br />
+				
 				<table class="widefat" width="80%" cellpadding="0" cellspacing="2" border="0">
 				<thead>
 		        <tr>
@@ -791,7 +827,26 @@ class SimplyExclude
 					<tr>
 					<?php
 				}
+				$class = ('alternate' == $class) ? '' : 'alternate';
+				
+				if (!isset($this->se_cfg['tags']['extra']['wp_tag_cloud']))
+					$this->se_cfg['tags']['extra']['wp_tag_cloud'] = 'No';
 				?>
+				<tr <?php if (strlen($class)) echo "class='".$class."'" ?>>
+					<td class="action">Widget</td>
+					<td class="description">Exclude from WordPress Tag Cloud Widget<br />Any tags set as part of the 'Archive' acton for Include/Exclude will be Included/Excluded via the WordPress Tag Cloud Widget output</td>
+					<td class="inc-excl">
+						<input type="radio" name="se_admin[tags][extra][wp_tag_cloud]" value="Yes" 
+							<?php if ((isset($this->se_cfg['tags']['extra']['wp_tag_cloud']))
+								   && ($this->se_cfg['tags']['extra']['wp_tag_cloud'] == 'Yes')) 
+								echo "checked='checked'"; ?> /> Yes<br />
+						<input type="radio" name="se_admin[tags][extra][wp_tag_cloud]" value="No" 
+							<?php if ((isset($this->se_cfg['tags']['extra']['wp_tag_cloud']))
+								   && ($this->se_cfg['tags']['extra']['wp_tag_cloud'] == 'No')) 
+								echo "checked='checked'"; ?> /> No
+					</td>
+				<tr>
+				
 				</tbody>
 				</table>
 				<br />
@@ -1397,18 +1452,29 @@ class SimplyExclude
 	/////////////////////////////////////////////////////////////////
 	
 	
-	
-	function se_filters($query) 
+
+	function se_filters() 
 	{
-		if ($this->in_admin == true)
+		global $wp_query;
+
+		if ((is_admin()) || (is_single()) || (is_page()))
 			return;
-			
+
+		// Only filter on our actions.
+//		if ((!is_front_page()) 
+//		 && (!is_search()) 
+//		 && (!is_archive())  
+//		 && (!is_feed())  
+//		 && (!is_author()) )
+//			return;
+
 		if (count($this->default_IsActions['cats']) > 0)
 		{
+			//echo "cats<pre>"; print_r($this->default_IsActions['cats']); echo "</pre>";
 			foreach ($this->default_IsActions['cats'] as $action_key => $action_val)
 			{
 				$cats_list = "";
-				if ($query->{$action_key})
+				if ($wp_query->{$action_key})
 				{
 					if (isset($this->se_cfg['cats'][$action_key]))
 					{
@@ -1419,7 +1485,9 @@ class SimplyExclude
 						}
 					}
 					if (strlen($cats_list))
-						$query->set('cat', $cats_list);
+					{
+						$wp_query->set('cat', $cats_list);
+					}
 				}
 			}
 		}
@@ -1430,13 +1498,13 @@ class SimplyExclude
 			{
 				foreach ($this->default_IsActions['tags'] as $action_key => $action_val)
 				{
-					if ($query->{$action_key})
+					if ($wp_query->{$action_key})
 					{
 						if (isset($this->se_cfg['tags'][$action_key]))
 						{
 							if (isset($tag_array_list))
 								unset($tag_array_list);
-							
+
 							$tag_array_list = array();
 							if (count($this->se_cfg['tags'][$action_key]) > 0)
 							{
@@ -1447,37 +1515,37 @@ class SimplyExclude
 
 								if ($this->se_cfg['tags']['actions'][$action_key] == "e")
 								{
-									$query->set('tag__not_in', $tag_array_list);
+									$wp_query->set('tag__not_in', $tag_array_list);
 								}
 								else
 								{
-									$query->set('tag__in', $tag_array_list);
+									$wp_query->set('tag__in', $tag_array_list);
 								}
 							}
 						}
 					}
 				}
 			}
+		}
 
-			if (count($this->default_IsActions['authors']) > 0)
+		if (count($this->default_IsActions['authors']) > 0)
+		{
+			foreach ($this->default_IsActions['authors'] as $action_key => $action_val)
 			{
-				foreach ($this->default_IsActions['authors'] as $action_key => $action_val)
+				$authors_list = "";
+				if ($wp_query->{$action_key})
 				{
-					$authors_list = "";
-					if ($query->{$action_key})
+					if (isset($this->se_cfg['authors'][$action_key]))
 					{
-						if (isset($this->se_cfg['authors'][$action_key]))
+						if (count($this->se_cfg['authors'][$action_key]))
 						{
-							if (count($this->se_cfg['authors'][$action_key]))
-							{
-								$authors_list = $this->se_listify_ids(
-									$this->se_cfg['authors']['actions'][$action_key],
-									$this->se_cfg['authors'][$action_key]);
-							}
+							$authors_list = $this->se_listify_ids(
+								$this->se_cfg['authors']['actions'][$action_key],
+								$this->se_cfg['authors'][$action_key]);
 						}
-						if (strlen($authors_list))
-							$query->set('author', $authors_list);
 					}
+					if (strlen($authors_list))
+						$wp_query->set('author', $authors_list);
 				}
 			}
 		}
@@ -1486,29 +1554,13 @@ class SimplyExclude
 		{
 			foreach ($this->default_IsActions['pages'] as $action_key => $action_val)
 			{
-				if ($query->{$action_key})
+				if ($wp_query->{$action_key})
 				{
 					add_filter('posts_where', array(&$this, 'SE4_search_pages'));
 					add_filter('posts_where', array(&$this, 'SE4_exclude_posts'));
-
-/*
-					$pages_list;
-					if (isset($this->se_cfg['pages'][$action_key]))
-					{
-						//echo "this->se_cfg['pages'][$action_key]=[". $this->se_cfg['pages'][$action_key]. "]<br />";
-					
-						$pages_list = $this->se_listify_ids($this->se_cfg['pages']['actions'][$action_key], 
-															$this->se_cfg['pages'][$action_key]);
-						//echo "pages_list=[". $pages_list."]<br />";
-					}
-					if (strlen($pages_list))
-						$query->set('page', $pages_list);
-*/
 				}
 			}
 		}
-		//echo "query after<pre>"; print_r($query); echo "</pre>";
-		return $query;
 	}
 
 	function se_listify_ids($action, $ids)
@@ -1926,10 +1978,12 @@ class SimplyExclude
 		if (!$all_page_ids)
 			$all_page_ids = array();
 		
-		if ($_REQUEST['se_admin']['pages']['actions']['is_search'] == "e") {
+		if ($_REQUEST['se_admin']['pages']['actions']['is_search'] == "e") 
+		{
 
 			// Remove all Pages from the Google XML Sitemap exclude array. Then we will add the new ones back. 
-			foreach($search_unleashed_exclude as $idx => $search_exclude_page_id) {
+			foreach($search_unleashed_exclude as $idx => $search_exclude_page_id) 
+			{
 				if (array_search($search_exclude_page_id, $all_page_ids) !== false)
 					unset($search_unleashed_exclude[$idx]);
 			}
@@ -1940,14 +1994,17 @@ class SimplyExclude
 					$search_unleashed_exclude[] = $se_pages_idx;
 			}
 		}
-		else {
+		else 
+		{
 
-			foreach($search_unleashed_exclude as $idx => $search_exclude_page_id) {
+			foreach($search_unleashed_exclude as $idx => $search_exclude_page_id) 
+			{
 				if (array_search($search_exclude_page_id, $all_page_ids) !== false)
 					unset($search_unleashed_exclude[$idx]);
 			}		
 
-			foreach($all_page_ids as $page_idx => $page_id) {
+			foreach($all_page_ids as $page_idx => $page_id) 
+			{
 				if (array_key_exists($page_id, $_REQUEST['se_admin']['pages']['is_search']) === false)
 				{
 					if (array_search($page_id, $search_unleashed_exclude) === false) 
@@ -1963,6 +2020,73 @@ class SimplyExclude
 		}
 		update_option( 'search_unleashed', $search_unleashed_options );
 	}
+
+	function se_categories_dropdown_args_proc($args)
+	{
+		$all_cat_ids = get_all_category_ids();
+		if (!$all_cat_ids)
+			$all_cat_ids = array();
+		
+		if (($this->se_cfg['cats']['actions']['is_archive'] == 'e') 
+		 && (count($this->se_cfg['cats']['is_archive'])))
+		{
+			$all_cat_ids = array_keys($this->se_cfg['cats']['is_archive']);
+		}
+		else if (($this->se_cfg['cats']['actions']['is_archive'] == 'i') 
+		 && (count($this->se_cfg['cats']['is_archive'])))
+		{
+			foreach($this->se_cfg['cats']['is_archive'] as $c_idx => $c_item)
+			{
+				$item_idx = array_search($c_idx, $all_cat_ids);
+				if ($item_idx !== false)
+					unset($all_cat_ids[$item_idx]);
+			}
+		}
+		
+		if ((isset($all_cat_ids)) && (count($all_cat_ids)))
+		{
+			$args['exclude'] = implode(',', $all_cat_ids);
+		}
+		return $args;
+	}
+
+	function se_widget_tag_cloud_args_proc($args)
+	{
+		$all_tags = get_tags('hide_empty=0&orderby=name&order=ASC');			
+
+		$all_tag_ids = array();
+		if ($all_tags)
+		{
+			foreach($all_tags as $t_item)
+			{
+				$all_tag_ids[] = $t_item->term_id;
+			}
+		}
+
+		if (($this->se_cfg['tags']['actions']['is_archive'] == 'e') 
+		 && (count($this->se_cfg['tags']['is_archive'])))
+		{
+			$all_tag_ids = array_keys($this->se_cfg['tags']['is_archive']);
+		}
+		else if (($this->se_cfg['tags']['actions']['is_archive'] == 'i') 
+		 && (count($this->se_cfg['tags']['is_archive'])))
+		{
+			foreach($this->se_cfg['tags']['is_archive'] as $c_idx => $c_item)
+			{
+				$item_idx = array_search($c_idx, $all_tag_ids);
+				if ($item_idx !== false)
+					unset($all_tag_ids[$item_idx]);
+			}
+		}
+		
+		if ((isset($all_tag_ids)) && (count($all_tag_ids)))
+		{
+			$args['exclude'] = implode(',', $all_tag_ids);
+		}
+		
+		return $args;
+	}
+
 }
 $simplyexclude = new SimplyExclude();
 
