@@ -96,7 +96,8 @@ form#page_exclusion table tbody tr td.page-action input {
 form#cat_exclusion .submit,
 form#tag_exclusion .submit,
 form#author_exclusion .submit,
-form#page_exclusion .submit {
+form#page_exclusion .submit,
+form#option_exclusion .submit {
 	border-top: 0px solid #CCCCCC;
 	margin: 2px 0pt 0pt;
 	padding: 0em 0pt 0pt;
