@@ -3,8 +3,8 @@ Contributors: Paul Menard
 Donate link: http://www.codehooligans.com/donations/
 Tags: admin, posts, pages, categories, tags, exclude, include, is_front, is_archive, is_search, is_feed
 Requires at least: 2.8
-Tested up to: 2.9.2
-Stable tag: 1.7.8
+Tested up to: 3.1
+Stable tag: 1.7.9
 
 == Description ==
 
@@ -48,6 +48,10 @@ At the time (version 1.6.1) the plugin only effects Pages included in the tradit
 
 
 == Changelog == 
+
+= 1.7.9 = 
+Fixes some small issue which prevented this plugin from working under WordPress 3.1.
+
 
 = 1.7.8 =
 Fixes: Mainly bug fixes and code cleanup. Patched code based on reported issues with the WP Gallery shortcode and the new WP 3.0 RC1 menus

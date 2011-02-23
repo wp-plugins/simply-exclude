@@ -4,7 +4,7 @@ Plugin Name: Simply Exclude
 Plugin URI: http://www.codehooligans.com/projects/wordpress/simply-exclude/
 Description: Provides an interface to selectively exclude/include categories, tags and page from the 4 actions used by WordPress. is_front, is_archive, is_search, is_feed, is_front.
 Author: Paul Menard
-Version: 1.7.8
+Version: 1.7.9
 Author URI: http://www.codehooligans.com
 
 */
@@ -231,6 +231,7 @@ class SimplyExclude
 			else
 				$this->se_cfg = $tmp_se_cfg;
 		}	
+//		echo "se_cfg<pre>"; print_r($this->se_cfg); echo "</pre>";
 
 		$plugindir_node 				= dirname(plugin_basename(__FILE__));	
 		$plugindir_url 					= get_bloginfo('wpurl') . "/wp-content/plugins/". $plugindir_node;
@@ -1441,12 +1442,10 @@ class SimplyExclude
 	
 	
 
-	function se_filters() 
+	function se_filters($wp_query) 
 	{
-		global $wp_query;
-
-		if ((is_admin()) || (is_single()) || (is_page()))
-			return;
+		if (($wp_query->is_admin) || ($wp_query->is_single) || ($wp_query->is_page))
+			return $wp_query;
 
 		// Only filter on our actions.
 //		if ((!is_front_page()) 
@@ -1456,25 +1455,22 @@ class SimplyExclude
 //		 && (!is_author()) )
 //			return;
 
+		//echo "se_cfg<pre>"; print_r($this->se_cfg); echo "</pre>";
+//		echo "default_IsActions<pre>"; print_r($this->default_IsActions); echo "</pre>";
+
 		if (count($this->default_IsActions['cats']) > 0)
 		{
-			//echo "cats<pre>"; print_r($this->default_IsActions['cats']); echo "</pre>";
 			foreach ($this->default_IsActions['cats'] as $action_key => $action_val)
 			{
 				$cats_list = "";
 				if ($wp_query->{$action_key})
 				{
-					if (isset($this->se_cfg['cats'][$action_key]))
+					if ((isset($this->se_cfg['cats'][$action_key])) && (count($this->se_cfg['cats'][$action_key])))
 					{
-						if (count($this->se_cfg['cats'][$action_key]))
-						{
-							$cats_list = $this->se_listify_ids( $this->se_cfg['cats']['actions'][$action_key],
-															$this->se_cfg['cats'][$action_key]);
-						}
-					}
-					if (strlen($cats_list))
-					{
-						$wp_query->set('cat', $cats_list);
+						if ($this->se_cfg['cats']['actions'][$action_key] == 'e')
+							$wp_query->set('category__not_in', array_keys($this->se_cfg['cats'][$action_key]));
+						else
+							$wp_query->set('category__in', array_keys($this->se_cfg['cats'][$action_key]));
 					}
 				}
 			}
@@ -1488,28 +1484,12 @@ class SimplyExclude
 				{
 					if ($wp_query->{$action_key})
 					{
-						if (isset($this->se_cfg['tags'][$action_key]))
+						if ((isset($this->se_cfg['tags'][$action_key])) && (count($this->se_cfg['tags'][$action_key]) > 0))
 						{
-							if (isset($tag_array_list))
-								unset($tag_array_list);
-
-							$tag_array_list = array();
-							if (count($this->se_cfg['tags'][$action_key]) > 0)
-							{
-								foreach($this->se_cfg['tags'][$action_key] as $key => $val)
-								{
-									$tag_array_list[] = $key; 
-								}
-
-								if ($this->se_cfg['tags']['actions'][$action_key] == "e")
-								{
-									$wp_query->set('tag__not_in', $tag_array_list);
-								}
-								else
-								{
-									$wp_query->set('tag__in', $tag_array_list);
-								}
-							}
+							if ($this->se_cfg['tags']['actions'][$action_key] == "e")
+								$wp_query->set('tag__not_in', array_keys($this->se_cfg['tags'][$action_key]));
+							else
+								$wp_query->set('tag__in', array_keys($this->se_cfg['tags'][$action_key]));
 						}
 					}
 				}
@@ -1549,6 +1529,7 @@ class SimplyExclude
 				}
 			}
 		}
+		return $wp_query;
 	}
 
 	function se_listify_ids($action, $ids)
