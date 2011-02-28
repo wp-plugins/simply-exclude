@@ -4,7 +4,7 @@ Plugin Name: Simply Exclude
 Plugin URI: http://www.codehooligans.com/projects/wordpress/simply-exclude/
 Description: Provides an interface to selectively exclude/include categories, tags and page from the 4 actions used by WordPress. is_front, is_archive, is_search, is_feed, is_front.
 Author: Paul Menard
-Version: 1.7.9
+Version: 1.7.9.1
 Author URI: http://www.codehooligans.com
 
 */
@@ -359,8 +359,7 @@ class SimplyExclude
 	function se_install()
 	{
 		add_option($this->options_key, 
-				serialize($this->se_cfg), 
-				"This is the serialized config structures used.");
+				serialize($this->se_cfg));
 	}
 	
 	function se_manage_page()
@@ -640,7 +639,7 @@ class SimplyExclude
 				$class = ('alternate' == $class) ? '' : 'alternate';
 
 				if (!isset($this->se_cfg['cats']['extra']['wp_list_categories']))
-					$this->se_cfg['cats']['extra']['wp_list_categories'] == 'No';
+					$this->se_cfg['cats']['extra']['wp_list_categories'] = 'No';
 				?>
 				<tr <?php if (strlen($class)) echo "class='".$class."'" ?>>
 					<td class="action">Widget</td>
@@ -1261,7 +1260,7 @@ class SimplyExclude
 		$action_key = "is_search";
 
 		if ((!empty($wp_query->query_vars['s'])) 
-		 && (count($this->se_cfg['pages'][$action_key]) > 0))
+		 && ((isset($this->se_cfg['pages'][$action_key])) && (count($this->se_cfg['pages'][$action_key]) > 0)))
 		{
 			//echo __FUNCTION__ ." before : where=[".$where."]<br />";
 			$excl_list = $this->get_pages_list(',', $this->se_cfg['pages'][$action_key]);
@@ -1286,11 +1285,15 @@ class SimplyExclude
 			//echo __FUNCTION__ ." before: where=[".$where."]<br />";
 
 			$where = str_replace('"', "'", $where);
-			if ('true' == $this->options['SE4_approved_pages_only']) {
-				$where = str_replace("post_type = 'post' AND ", "post_password = '' AND ", $where);
-			}
-			else { // < v 2.1
-				$where = str_replace("post_type = 'post' AND ", "", $where);
+			
+			if (isset($this->options['SE4_approved_pages_only']))
+			{
+				if ('true' == $this->options['SE4_approved_pages_only']) {
+					$where = str_replace("post_type = 'post' AND ", "post_password = '' AND ", $where);
+				}
+				else { // < v 2.1
+					$where = str_replace("post_type = 'post' AND ", "", $where);
+				}
 			}
 			//echo __FUNCTION__ ." after: where=[".$where."]<br />";
 		}
@@ -1447,16 +1450,19 @@ class SimplyExclude
 		if (($wp_query->is_admin) || ($wp_query->is_single) || ($wp_query->is_page))
 			return $wp_query;
 
+		if ((isset($wp_query->query_vars['post_type']))
+		 && (strlen($wp_query->query_vars['post_type'])) ) 
+		{
+			return $wp_query;
+		}
+		
 		// Only filter on our actions.
-//		if ((!is_front_page()) 
-//		 && (!is_search()) 
-//		 && (!is_archive())  
-//		 && (!is_feed())  
-//		 && (!is_author()) )
-//			return;
-
-		//echo "se_cfg<pre>"; print_r($this->se_cfg); echo "</pre>";
-//		echo "default_IsActions<pre>"; print_r($this->default_IsActions); echo "</pre>";
+		if ((!$wp_query->is_home) 
+		 && (!$wp_query->is_search) 
+		 && (!$wp_query->is_archive)  
+		 && (!$wp_query->is_feed)  
+		 && (!$wp_query->is_author) )
+			return $wp_query;
 
 		if (count($this->default_IsActions['cats']) > 0)
 		{
@@ -1480,6 +1486,7 @@ class SimplyExclude
 		{
 			if (count($this->default_IsActions['tags']) > 0)
 			{
+				//echo "this->default_IsActions[tags]<pre>"; print_r($this->default_IsActions['tags']); echo "</pre>";
 				foreach ($this->default_IsActions['tags'] as $action_key => $action_val)
 				{
 					if ($wp_query->{$action_key})
@@ -1996,19 +2003,23 @@ class SimplyExclude
 		if (!$all_cat_ids)
 			$all_cat_ids = array();
 		
-		if (($this->se_cfg['cats']['actions']['is_archive'] == 'e') 
-		 && (count($this->se_cfg['cats']['is_archive'])))
+		if ((isset($this->se_cfg['cats']['actions']['is_archive']))
+		 && (isset($this->se_cfg['cats']['is_archive'])))
 		{
-			$all_cat_ids = array_keys($this->se_cfg['cats']['is_archive']);
-		}
-		else if (($this->se_cfg['cats']['actions']['is_archive'] == 'i') 
-		 && (count($this->se_cfg['cats']['is_archive'])))
-		{
-			foreach($this->se_cfg['cats']['is_archive'] as $c_idx => $c_item)
+			if (($this->se_cfg['cats']['actions']['is_archive'] == 'e') 
+			 && (count($this->se_cfg['cats']['is_archive'])))
 			{
-				$item_idx = array_search($c_idx, $all_cat_ids);
-				if ($item_idx !== false)
-					unset($all_cat_ids[$item_idx]);
+				$all_cat_ids = array_keys($this->se_cfg['cats']['is_archive']);
+			}
+			else if (($this->se_cfg['cats']['actions']['is_archive'] == 'i') 
+			 && (count($this->se_cfg['cats']['is_archive'])))
+			{
+				foreach($this->se_cfg['cats']['is_archive'] as $c_idx => $c_item)
+				{
+					$item_idx = array_search($c_idx, $all_cat_ids);
+					if ($item_idx !== false)
+						unset($all_cat_ids[$item_idx]);
+				}
 			}
 		}
 		

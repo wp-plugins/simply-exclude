@@ -4,7 +4,7 @@ Donate link: http://www.codehooligans.com/donations/
 Tags: admin, posts, pages, categories, tags, exclude, include, is_front, is_archive, is_search, is_feed
 Requires at least: 2.8
 Tested up to: 3.1
-Stable tag: 1.7.9
+Stable tag: 1.7.9.1
 
 == Description ==
 
@@ -49,9 +49,21 @@ At the time (version 1.6.1) the plugin only effects Pages included in the tradit
 
 == Changelog == 
 
+= 1.7.9.1 = 
+More fixes for compatibility issues with WordPress 3.1. Some of these issues reported are:
+
+* Simply Exclude effects the nav menus with using WP menus. http://wordpress.org/support/topic/plugin-simply-exclude-this-plugin-make-all-my-menus-totally-blank
+
+* Simple Exclude effect filtering of sidebar widgets OR Filter of sidebar content not effected by Simply Exclude settings.
+http://www.codehooligans.com/projects/wordpress/simply-exclude/#comment-82318
+
+I'm sure there are some other areas still having issues. I'm still working on the code changes but wanted to get these fixes posts some at least some users can start using the plugin again. 
+
+Thanks to all for reporting issues and thank you for your patience in this code matter. 
+
+
 = 1.7.9 = 
 Fixes some small issue which prevented this plugin from working under WordPress 3.1.
-
 
 = 1.7.8 =
 Fixes: Mainly bug fixes and code cleanup. Patched code based on reported issues with the WP Gallery shortcode and the new WP 3.0 RC1 menus
