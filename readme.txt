@@ -1,10 +1,10 @@
 === Simply Exclude ===
 Contributors: Paul Menard
-Donate link: http://www.codehooligans.com
+Donate link: http://www.codehooligans.com/donations/
 Tags: admin, posts, pages, categories, tags, exclude, include, is_front, is_archive, is_search, is_feed
-Requires at least: 2.6
-Tested up to: 2.8.1
-Stable tag: 1.7.5
+Requires at least: 2.8
+Tested up to: 3.1
+Stable tag: 1.7.9.2
 
 == Description ==
 
@@ -17,7 +17,7 @@ is_feed - When a Feed is viewed/requested.
 
 Note: Page exclusions only work for search.
 
-[Plugin Homepage](http://www.codehooligans.com/2008/04/27/simply-exclude-plugin/ "SimplyExclude Plugin for WordPress")
+[Plugin Homepage](http://www.codehooligans.com/projects/wordpress/simply-exclude/ "SimplyExclude Plugin for WordPress")
 
 == Installation ==
 
@@ -47,15 +47,68 @@ At the time (version 1.6.1) the plugin only effects Pages included in the tradit
 2. Page Admin interface allow for exclusion of Page from search. 
 
 
-== Version Histroy == 
-<p>
-1.0 - 2007-11-20: Initial release<br />
-1.1 - 2008-12-15: Added logic to work with WP version greater than 2.2<br />
-1.5 - 20008-04-27 Fixed display issues. Changes 'List' to 'Archive'. Added tags inclusion/exclusion login. Works only with WP 2.3 and greater.<br />
-1.6 - 2008-05-22 Fixed various items. Added format display for Categories and Pages to reveal hierarchy, Disable plugin functions when searching in admin. This also corrected a display exclusion bug when showing categories and pages. <br />
-1.7 - 2008-05-29 Added Author to the Include/Exclude logic. Now you can exclude Author's Posts from Search, Home, RSS, Archive.
-1.7.1 - 2008-07-16 Fixed an issue with WP 2.6 where it automatically decided to unserialize the option data structure. 
-1.7.2 - 2009-02.05 Fixed some PHP warning by checking variable is set. Also added style to 2.7 interface. 
-1.7.2.1 - 2009-07.01 Fixed some PHP warning by checking variable is set. Also added style for 2.8 interface. Very minor changes. 
-1.7.5 - 2009-07.15 Fixed some PHP warning by checking variable is set. Also added style for 2.8 interface. Very minor changes. 
-</p>
+== Changelog == 
+
+= 1.7.9.2 = 
+
+Very small correction to table row elements which were not properly closed. This seemed to effect FireFox 5.0.1 
+Thanks for Frank for reporting this issue:
+http://www.codehooligans.com/projects/wordpress/simply-exclude/#comment-107073
+
+= 1.7.9.1 = 
+More fixes for compatibility issues with WordPress 3.1. Some of these issues reported are:
+
+* Simply Exclude effects the nav menus with using WP menus. http://wordpress.org/support/topic/plugin-simply-exclude-this-plugin-make-all-my-menus-totally-blank
+
+* Simple Exclude effect filtering of sidebar widgets OR Filter of sidebar content not effected by Simply Exclude settings.
+http://www.codehooligans.com/projects/wordpress/simply-exclude/#comment-82318
+
+I'm sure there are some other areas still having issues. I'm still working on the code changes but wanted to get these fixes posts some at least some users can start using the plugin again. 
+
+Thanks to all for reporting issues and thank you for your patience in this code matter. 
+
+
+= 1.7.9 = 
+Fixes some small issue which prevented this plugin from working under WordPress 3.1.
+
+= 1.7.8 =
+Fixes: Mainly bug fixes and code cleanup. Patched code based on reported issues with the WP Gallery shortcode and the new WP 3.0 RC1 menus
+Additions: Added some logic to Categories and Tags to work with Exclude/Include when using the WordPress Category or Tag Cloud Widgets. 
+
+Coming Soon: Have been working on a new version of Simply Exclude that will dynamically work with the new Taxonomy system. No longer will we be restricted to excluding just categories and tags. But any registered Taxonomy now can be tweaked. This will be a major code rewrite and will be named SE 2.0. Coming this summer!
+
+= 1.7.7 =
+2010-05-12
+Fixes: Mainly bug fixes and code cleanup. Most bugs discovered via using WP_DEBUG for uninitialized variables. 
+
+= 1.7.6 =
+2009-11-14 
+Fixes: Issue with the Pages exclusion. Many users reporting a permissions issue. 
+Additions: Added handler logic to interface with two other plugins. One of the often used Google XML Sitemaps. When setting Page or Category exclusions you now have the option to update the Google XML Sitemaps exclude pages and categories automatically. The other plugin is Search Unleashed. 
+
+= 1.7.5 =
+2009-07-15 Fixed some PHP warning by checking variable is set. Also added style for 2.8 interface. Very minor changes. 
+
+= 1.7.2.1 =
+2009-07-01 Fixed some PHP warning by checking variable is set. Also added style for 2.8 interface. Very minor changes. 
+
+= 1.7.2 =
+2009-02-05 Fixed some PHP warning by checking variable is set. Also added style to 2.7 interface. 
+
+= 1.7.1 =
+2008-07-16 Fixed an issue with WP 2.6 where it automatically decided to unserialize the option data structure. 
+
+= 1.7 =
+2008-05-29 Added Author to the Include/Exclude logic. Now you can exclude Author's Posts from Search, Home, RSS, Archive.
+
+= 1.6 =
+2008-05-22 Fixed various items. Added format display for Categories and Pages to reveal hierarchy, Disable plugin functions when searching in admin. This also corrected a display exclusion bug when showing categories and pages.
+
+= 1.5 = 
+20008-04-27 Fixed display issues. Changes 'List' to 'Archive'. Added tags inclusion/exclusion login. Works only with WP 2.3 and greater.
+
+= 1.1 =
+2008-12-15: Added logic to work with WP version greater than 2.2
+
+= 1.0 =
+2007-11-20: Initial release
