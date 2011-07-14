@@ -4,7 +4,7 @@ Donate link: http://www.codehooligans.com/donations/
 Tags: admin, posts, pages, categories, tags, exclude, include, is_front, is_archive, is_search, is_feed
 Requires at least: 2.8
 Tested up to: 3.1
-Stable tag: 1.7.9.1
+Stable tag: 1.7.9.2
 
 == Description ==
 
@@ -48,6 +48,12 @@ At the time (version 1.6.1) the plugin only effects Pages included in the tradit
 
 
 == Changelog == 
+
+= 1.7.9.2 = 
+
+Very small correction to table row elements which were not properly closed. This seemed to effect FireFox 5.0.1 
+Thanks for Frank for reporting this issue:
+http://www.codehooligans.com/projects/wordpress/simply-exclude/#comment-107073
 
 = 1.7.9.1 = 
 More fixes for compatibility issues with WordPress 3.1. Some of these issues reported are:

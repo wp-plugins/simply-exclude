@@ -4,7 +4,7 @@ Plugin Name: Simply Exclude
 Plugin URI: http://www.codehooligans.com/projects/wordpress/simply-exclude/
 Description: Provides an interface to selectively exclude/include categories, tags and page from the 4 actions used by WordPress. is_front, is_archive, is_search, is_feed, is_front.
 Author: Paul Menard
-Version: 1.7.9.1
+Version: 1.7.9.2
 Author URI: http://www.codehooligans.com
 
 */
@@ -632,7 +632,7 @@ class SimplyExclude
 									   && ($this->se_cfg['cats']['actions'][$action_key] == 'e')) 
 									echo "checked='checked'"; ?> /> Exclude
 						</td>
-					<tr>
+					</tr>
 					<?php
 				}
 
@@ -654,7 +654,7 @@ class SimplyExclude
 								   && ($this->se_cfg['cats']['extra']['wp_list_categories'] == 'No')) 
 								echo "checked='checked'"; ?> /> No
 					</td>
-				<tr>
+				</tr>
 				</tbody>
 				</table>
 				<br />
@@ -686,7 +686,6 @@ class SimplyExclude
 				</tr>
 				</tbody>
 				</table>
-				</p></div>				
 			</form>
 			<?php
 		}
@@ -812,7 +811,7 @@ class SimplyExclude
 								<?php if ($this->se_cfg['tags']['actions'][$action_key] == 'e') 
 									echo "checked='checked'"; ?> /> Exclude
 						</td>
-					<tr>
+					</tr>
 					<?php
 				}
 				$class = ('alternate' == $class) ? '' : 'alternate';
@@ -833,7 +832,7 @@ class SimplyExclude
 								   && ($this->se_cfg['tags']['extra']['wp_tag_cloud'] == 'No')) 
 								echo "checked='checked'"; ?> /> No
 					</td>
-				<tr>
+				</tr>
 				
 				</tbody>
 				</table>
@@ -864,7 +863,6 @@ class SimplyExclude
 				</tr>
 				</tbody>
 				</table>
-				</p></div>				
 			</form>
 			<?php
 		}
@@ -979,7 +977,7 @@ class SimplyExclude
 								<?php if ($this->se_cfg['authors']['actions'][$action_key] == 'e') 
 									echo "checked='checked'"; ?> /> Exclude
 						</td>
-					<tr>
+					</tr>
 					<?php
 				}
 				?>
@@ -1012,7 +1010,6 @@ class SimplyExclude
 				</tr>
 				</tbody>
 				</table>
-				</p></div>				
 			</form>
 			<?php
 		}
@@ -1150,7 +1147,7 @@ class SimplyExclude
 									   && ($this->se_cfg['pages']['actions'][$action_key] == 'e')) 
 									echo "checked='checked'"; ?> /> Exclude
 						</td>
-					<tr>
+					</tr>
 					<?php
 				}
 				?>
@@ -1184,8 +1181,7 @@ class SimplyExclude
 					</td>
 				</tr>
 				</tbody>	
-				</table>
-				
+				</table>				
 			</form>
 			<?php
 			//$this->se_check_google_sitemap_exclude(1);
@@ -1419,7 +1415,7 @@ class SimplyExclude
 						?>
 
 					</td>
-				<tr>					
+				</tr>					
 				<?php
 			}
 			?>
@@ -1433,8 +1429,7 @@ class SimplyExclude
 			</tr>
 			
 			</tbody>
-			</table>
-			
+			</table>			
 		</form>
 		<?php
 	}
