@@ -4,7 +4,7 @@ Donate link: http://www.codehooligans.com
 Tags: admin, posts, pages, categories, tags, Post Type, Taxonomy, exclude, include, is_front, is_archive, is_search, is_feed, is_author
 Requires at least: 3.2
 Tested up to: 3.3.1
-Stable tag: 2.0
+Stable tag: 2.0.1
 
 == Description ==
 
@@ -45,6 +45,10 @@ At the time (version 1.6.1) the plugin only effects Pages included in the tradit
 3. New Help section to answer some of your questions.
 
 == Changelog == 
+
+= 2.0.1 =
+2012-03-04
+Small bug. On the new Simply Exclude Help panel I user the jQuery UI Accordion package. Seems I failed to check this when setting the minimum WordPress version I was supporting (3.2). Seems jQuery UI Accordion is not available in core WordPress until version 3.3. So have added my own libraries to cover the older versions of WordPress. Sorry about that. And thanks to @biswajeet for bringing this up in the WordPress forums.
 
 = 2.0 =
 2012-03-03

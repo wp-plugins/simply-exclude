@@ -4,7 +4,7 @@ Plugin Name: Simply Exclude New
 Plugin URI: http://www.codehooligans.com/projects/wordpress/simply-exclude/
 Description: Provides an interface to selectively exclude/include categories, tags and page from the 4 actions used by WordPress. is_front, is_archive, is_search, is_feed.
 Author: Paul Menard
-Version: 2.0
+Version: 2.0.1
 Author URI: http://www.codehooligans.com
 
 Revision history
@@ -247,13 +247,26 @@ class SimplyExcludeNew
 
 	function on_load_help_page()
 	{
+		global $wp_version; 
+		
 		wp_enqueue_style( 'simplyexclude-stylesheet', $this->plugindir_url .'/simplyexclude_style_admin.css', false, $this->se_version);
 		
 		wp_enqueue_script('jquery'); 
 		wp_enqueue_script('jquery-ui-core'); 
-		wp_enqueue_script('jquery-ui-widget');				
-		wp_enqueue_script('jquery-ui-accordion');				
+
+	    if ( version_compare( $wp_version, '3.3', '<' ) ) {
+			wp_register_script( 'jquery-ui-widget-se', $this->plugindir_url .'/js/jquery-ui/jquery.ui.widget.min.js', 
+				array('jquery', 'jquery-ui-core'), $this->se_version);
+		    wp_enqueue_script( 'jquery-ui-widget-se' );
+			wp_register_script( 'jquery-ui-accordion-se', $this->plugindir_url .'/js/jquery-ui/jquery.ui.accordion.min.js', 
+				array('jquery', 'jquery-ui-core', 'jquery-ui-widget-se'), $this->se_version);
+		    wp_enqueue_script( 'jquery-ui-accordion-se' );
 		
+		} else {
+			wp_enqueue_script('jquery-ui-widget');				
+			wp_enqueue_script('jquery-ui-accordion');							
+		}
+
 		add_meta_box('se_settings_about_sidebar', 'About this Plugin', array(&$this, 'se_settings_about_sidebar'),
 			$this->pagehooks['se_manage_help'], 'side', 'core');
 		add_meta_box('se_settings_donate_sidebar', 'Make a Donation', array(&$this, 'se_settings_donate_sidebar'),
