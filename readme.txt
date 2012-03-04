@@ -1,21 +1,19 @@
 === Simply Exclude ===
 Contributors: Paul Menard
-Donate link: http://www.codehooligans.com/donations/
-Tags: admin, posts, pages, categories, tags, exclude, include, is_front, is_archive, is_search, is_feed
-Requires at least: 2.8
-Tested up to: 3.2
-Stable tag: 1.7.9.2
+Donate link: http://www.codehooligans.com
+Tags: admin, posts, pages, categories, tags, Post Type, Taxonomy, exclude, include, is_front, is_archive, is_search, is_feed, is_author
+Requires at least: 3.2
+Tested up to: 3.3.1
+Stable tag: 2.0
 
 == Description ==
 
-Provides an interface to selectively exclude/include categories, tags, authors and pages from the 4 actions used by WordPress
+Provides an interface to selectively exclude/include Post Types, Taxonomies and Authors 4 actions used by WordPress
 
 is_front - When the user views the Front page. 
 is_archive - When the user views an category or tags Archive.
 is_search - When the user views a search result page.
 is_feed - When a Feed is viewed/requested.
-
-Note: Page exclusions only work for search.
 
 [Plugin Homepage](http://www.codehooligans.com/projects/wordpress/simply-exclude/ "SimplyExclude Plugin for WordPress")
 
@@ -23,8 +21,7 @@ Note: Page exclusions only work for search.
 
 1. Upload the extracted plugin folder and contained files to your `/wp-content/plugins/` directory
 2. Activate the plugin through the 'Plugins' menu in WordPress
-3. Navigate to Settings -> Simply Exclude (Options -> Simply Exclude in pre 2.5).
-4. Once on the plugin admin page you should see navigation links at the top: Manage Categories, Manage Tags, Manage Pages.On each of these page you can selectively exclude/include the cat/tag/page for the given action is_front/is_archive/is_feed/is_search. 
+3. Navigate to you PostS/Pages/Category/Tags or any Post Type or Taxonomy sections. You will notice a new column allowing setting of the Taxonomy or Post type item in relation to selectively exclude/include the cat/tag/page for the given action is_front/is_archive/is_feed/is_search. 
 
 == Frequently Asked Questions ==
 
@@ -44,38 +41,14 @@ At the time (version 1.6.1) the plugin only effects Pages included in the tradit
 == Screenshots ==
 
 1. Simply Exclude Admin interface showing Category exclusion options. 
-2. Page Admin interface allow for exclusion of Page from search. 
-
+2. Post listing showing new Simply Exclude options.
+3. New Help section to answer some of your questions.
 
 == Changelog == 
 
-= 1.7.9.2 = 
-
-Very small correction to table row elements which were not properly closed. This seemed to effect FireFox 5.0.1 
-Thanks for Frank for reporting this issue:
-http://www.codehooligans.com/projects/wordpress/simply-exclude/#comment-107073
-
-= 1.7.9.1 = 
-More fixes for compatibility issues with WordPress 3.1. Some of these issues reported are:
-
-* Simply Exclude effects the nav menus with using WP menus. http://wordpress.org/support/topic/plugin-simply-exclude-this-plugin-make-all-my-menus-totally-blank
-
-* Simple Exclude effect filtering of sidebar widgets OR Filter of sidebar content not effected by Simply Exclude settings.
-http://www.codehooligans.com/projects/wordpress/simply-exclude/#comment-82318
-
-I'm sure there are some other areas still having issues. I'm still working on the code changes but wanted to get these fixes posts some at least some users can start using the plugin again. 
-
-Thanks to all for reporting issues and thank you for your patience in this code matter. 
-
-
-= 1.7.9 = 
-Fixes some small issue which prevented this plugin from working under WordPress 3.1.
-
-= 1.7.8 =
-Fixes: Mainly bug fixes and code cleanup. Patched code based on reported issues with the WP Gallery shortcode and the new WP 3.0 RC1 menus
-Additions: Added some logic to Categories and Tags to work with Exclude/Include when using the WordPress Category or Tag Cloud Widgets. 
-
-Coming Soon: Have been working on a new version of Simply Exclude that will dynamically work with the new Taxonomy system. No longer will we be restricted to excluding just categories and tags. But any registered Taxonomy now can be tweaked. This will be a major code rewrite and will be named SE 2.0. Coming this summer!
+= 2.0 =
+2012-03-03
+Full rewrite of the plugin core code. Replace the growing list of panels and added functionality directly to the Post Type and Taxonomy panels. On both Post Types and Taxonomy panels you will see a new column allowing setting the exclude/include on Search, Archive, Feed and Home.
 
 = 1.7.7 =
 2010-05-12
