@@ -4,9 +4,12 @@ Donate link: http://www.codehooligans.com
 Tags: admin, posts, pages, categories, tags, Post Type, Taxonomy, exclude, include, is_front, is_archive, is_search, is_feed, is_author
 Requires at least: 3.2
 Tested up to: 3.3.1
-Stable tag: 2.0.1
+Stable tag: 2.0.2
 
 == Description ==
+
+Note to all used who tried the version 2.0 and 2.0.1 there were was bugs in the logic which upgrades the previous version of the Simply Exclude configuration to the version 2.0 format. If you lost your settings you can now reload them manually. Simply go into simply Exclude > Settings and at the very bottom is an option to reload the configuration again. 
+
 
 Provides an interface to selectively exclude/include Post Types, Taxonomies and Authors 4 actions used by WordPress
 
@@ -33,10 +36,7 @@ Well you need to be careful when excluding both categories and tags. Since a pos
 
 Only the parent Page itself is excluded from searches. By default WordPress does not yet include Pages in search. Make sure you have other search plugins correctly configured to not search attachments. 
 
-= I've excluded a Page via the plugin but it still shows up in my sidebar when wp_list_pages is called. Why? =
-
-At the time (version 1.6.1) the plugin only effects Pages included in the traditional Search feature on a site. It does not trap all selections of Pages via other internal WordPress functions...yet!
-
+See more FAQ information when you install the plugin. Look for the Help section.
 
 == Screenshots ==
 
