@@ -4,7 +4,7 @@ Plugin Name: Simply Exclude
 Plugin URI: http://www.codehooligans.com/projects/wordpress/simply-exclude/
 Description: Provides an interface to selectively exclude/include categories, tags and page from the 4 actions used by WordPress. is_front, is_archive, is_search, is_feed.
 Author: Paul Menard
-Version: 2.0.2
+Version: 2.0.3
 Author URI: http://www.codehooligans.com
 
 Revision history
@@ -21,6 +21,7 @@ Revision history
 2.0 - 2012-03-03 Full rewrite of the plugin to support custom Taxonomies and Custom Post Types. Added support for managing items within the Taxonomy/Post Type panels. Added support for exclude/include on Post instead of just Categories and Tags. Dropped support for third-party plugins like Google XML Sitemaps and Seach Unleashed (Sorry!). Now correctly supporting Pages seach excludes. Yah!.
 2.0.1 - 2012-03-04 Small bug. On the new Simply Exclude Help panel I user the jQuery UI Accordion package. Seems I failed to check this when setting the minimum WordPress version I was supporting (3.2). Seems jQuery UI Accordion is not available in core WordPress until version 3.3. So have added my own libraries to cover the older versions of WordPress. Sorry about that. And thanks to @biswajeet for bringing this up in the WordPress forums.
 2.0.2 - 2012-03-05 Fixed some issues when converting from the previous version of the Simply Exclude configurations. 
+2.0.3 - 2012-03-18 Fixes to core filtering logic. 
 */
 
 define('SIMPLY_EXCLUDE_I18N_DOMAIN', 'simplyexclude');
@@ -44,7 +45,7 @@ class SimplyExclude
 	
 	public function __construct() {
 		
-		$this->se_version	= "2.0.2";
+		$this->se_version	= "2.0.3";
 		
 		$this->admin_menu_label	= __("Simply Exclude", SIMPLY_EXCLUDE_I18N_DOMAIN);
 		$this->options_key		= "simplyexclude_v2";
@@ -66,7 +67,7 @@ class SimplyExclude
 		add_action( 'wp_ajax_se_update', array(&$this, 'se_ajax_update') );
 
 		// Used to limit the categories displayed on the home page. Simple
-		add_filter('pre_get_posts', array(&$this,'se_filters'));
+		add_filter('pre_get_posts', array(&$this,'se_filters'), 999);
 	}
 
 	function admin_init_proc()
@@ -1896,10 +1897,23 @@ class SimplyExclude
 	
 	function se_filters($query) 
 	{
-		global $wp_query;
+		global $wp_version;
 
-		if ($wp_query != $query)
+		// We don't process filtering for admin. ever!
+		if (is_admin())
 			return $query;
+			
+		if ( version_compare( $wp_version, '3.3.0', '<' ) ) {
+			
+			global $wp_the_query;
+			return $wp_the_query === $query;
+				return $query;
+
+	    } else {
+			if (!is_main_query())
+				return $query;
+		}
+ 	
 
 		// Ignore all queries from within wp-admin. 
 		if ($query->is_admin)
@@ -1907,12 +1921,15 @@ class SimplyExclude
 
 		$this->se_load_config();
 
-//		echo "se_cfg<pre>"; print_r($this->se_cfg); echo "</pre>";
-//		echo "query<pre>"; print_r($query); echo "</pre>";
-//		echo "wp_query<pre>"; print_r($wp_query); echo "</pre>";
-//		exit;
-						
+		// Check our debug
+		if (isset($_GET['SE_DEBUG']))
+			$se_debug = true;
+		else
+			$se_debug = false;
+
+			
 		$action_data = array();
+
 		// Only filter on our actions.
 		if (($query->is_home) || ($query->is_posts_page))
 		{
@@ -1922,32 +1939,30 @@ class SimplyExclude
 		{
 			$action_data = $this->se_get_action_data('is_search');
 		}
-		else if ($query->is_archive)  
-		{
-			$action_data = $this->se_get_action_data('is_archive');			
-		}
 		else if ($query->is_feed)  
 		{
 			$action_data = $this->se_get_action_data('is_feed');
 		}
+		else if ($query->is_archive)  
+		{
+			$action_data = $this->se_get_action_data('is_archive');			
+		}
 
-		//echo "action_data<pre>"; print_r($action_data); echo "</pre>";
+		if (( current_user_can('manage_options') )  && ( $se_debug == true ) ){
+			echo "action_data<pre>"; print_r($action_data); echo "</pre>";
+		}
+		
 		if ($action_data)
 		{
 			$tax_query = array();
 			$tax_query_relation = array();
-//			echo "action_data<pre>"; print_r($action_data); echo "</pre>";
+
 			foreach($action_data as $key => $key_data)
 			{
-//				echo "key=[". $key ."]<br />";
-//				echo "key_data<pre>"; print_r($key_data); echo "</pre>";
 				if ($key == "taxonomies")
 				{
 					foreach($key_data as $key_key => $key_key_data)
 					{
-						//echo "key_key=[". $key_key ."]<br />";
-						//echo "key_key_data<pre>"; print_r($key_key_data); echo "</pre>";
-
 						$tax_args = array(
 							'taxonomy' 	=> $key_key,
 							'field' 	=> 'id',
@@ -1973,63 +1988,93 @@ class SimplyExclude
 					$post_types_array = array();
 					$post__in = array();
 					$post__not_in = array();
+					$post__all = array();
 					foreach($key_data as $key_key => $key_key_data)
-					{
-						//echo "key_key=[". $key_key ."]<br />";
-						//echo "key_key_data<pre>"; print_r($key_key_data); echo "</pre>";
-
-						$post_types_array[] = $key_key;
-						if ($key_key_data['actions'] == 'e')
+					{						
+						if ($key_key_data['actions'] == 'e') {
 							$post__not_in = array_merge($post__not_in, $key_key_data['terms']);
-						else if ($key_key_data['actions'] == 'i')
-							$post__in = array_merge($post__in, $key_key_data['terms']);								
+							$post_types_array['__not_in'][] = $key_key;
+							
+						} else if ($key_key_data['actions'] == 'i') {
+							$post__in = array_merge($post__in, $key_key_data['terms']);
+							$post_types_array['__in'][] = $key_key;
+						} else if ($key_key_data['actions'] == 'a') {
+							$post_types_array['all'][] = $key_key;
+						}
 					}
-					//echo "post_types_array<pre>"; print_r($post_types_array); echo "</pre>";
-					//echo "post__not_in<pre>"; print_r($post__not_in); echo "</pre>";
-					//echo "post__in<pre>"; print_r($post__in); echo "</pre>";
+
+					$query_post_types = $query->get('post_type');
+					if (!$query_post_types) {
+						if (isset($_GET['post_type'])) {
+							$query_post_types = explode(',', $_GET['post_type']);
+							if ($query_post_types) {
+								foreach($query_post_types as $idx => $post_type) {
+									$query_post_types[$idx] = trim($post_type);
+								}
+							}
+						}
+					}
+					if (!$query_post_types) $query_post_types = array();
+					else if (!is_array($query_post_types))
+					{
+						$query_post_types = array($query_post_types);
+					}
+					if (( current_user_can('manage_options') )  && ( $se_debug == true ) ){
+						echo "query_post_types<pre>"; print_r($query_post_types); echo "</pre>";
+						echo "post_types_array<pre>"; print_r($post_types_array); echo "</pre>";
+					}
+
 
 					if (count($post__not_in))
 					{
-						//echo "PROCESSING: POST__NOT_IN<br />";
-						//echo "post__not_in<pre>"; print_r($post__not_in); echo "</pre>";
 						$query->set('post__not_in', $post__not_in);
+						
+						if (( current_user_can('manage_options') )  && ( $se_debug == true ) ){
+							
+							echo "PROCESSING: POST__NOT_IN<br />";
+							echo "post__not_in<pre>"; print_r($post__not_in); echo "</pre>";
+						}						
 					}
 					else if (count($post__in))
 					{
-						//echo "PROCESSING: POST__IN<br />";
-						//echo "post__in<pre>"; print_r($post__in); echo "</pre>";
 						$query->set('post__in', $post__in);
-					}
-					
-					$query_post_type = $query->get('post_type');
-					//echo "query_post_type<pre>"; print_r($query_post_type); echo "</pre>";
-					if (!$query_post_type) $query_post_type = array();
-					else if (!is_array($query_post_type))
+						
+						if (isset($post_types_array['__in']))
+						{
+							$merged_query_post_types = array_unique(array_merge($post_types_array['__in'], $query_post_types));
+							$query->set('post_type', $merged_query_post_types);
+						}						
+						if (( current_user_can('manage_options') )  && ( $se_debug == true ) ){
+							echo "PROCESSING: POST__IN<br />";
+							echo "post__in<pre>"; print_r($post__in); echo "</pre>";
+							echo "merged_query_post_types<pre>"; print_r($merged_query_post_types); echo "</pre>";
+						}
+					} 
+					else if ((isset($post_types_array['all'])) && (count($post_types_array['all'])))
 					{
-						$query_post_type = array($query_post_type);
-					}
-					//echo "query_post_type<pre>"; print_r($query_post_type); echo "</pre>";
+						$merged_query_post_types = array_unique(array_merge($post_types_array['all'], $query_post_types));
 
-					if ($post_types_array)
-					{
-						$query_post_type = array_unique(array_merge($post_types_array, $query_post_type));
-						$query->set('post_type', $query_post_type);
-					}
+						if (( current_user_can('manage_options') )  && ( $se_debug == true ) ){
+							echo "post_types_array[all]<pre>"; print_r($post_types_array['all']); echo "</pre>";
+							echo "merged_query_post_types<pre>"; print_r($merged_query_post_types); echo "</pre>";
+						}
+						$query->set('post_type', $merged_query_post_types);
+					} 
 				}
 				else if ($key == "se_types")
 				{
 					foreach($key_data as $key_key => $key_key_data)
 					{
-//						echo "key_key=[". $key_key ."]<br />";
-//						echo "key_key_data<pre>"; print_r($key_key_data); echo "</pre>";
-
 						if ($key_key == "users")
 						{
 							$user_ids = $this->se_listify_ids($key_key_data['terms'], $key_key_data['actions']);
-							//echo "user_ids=[". $user_ids ."]<br />";
 							if ($user_ids)
 							{
 								$query->set('author', $user_ids);
+
+								if (( current_user_can('manage_options') )  && ( $se_debug == true ) ){
+									echo "user_ids=[". $user_ids ."]<br />";
+								}								
 							}
 						}
 					}					
@@ -2042,9 +2087,14 @@ class SimplyExclude
 				else
 					$tax_query['relation'] = "AND";
 
+				if (( current_user_can('manage_options') )  && ( $se_debug == true ) ){
+					echo "tax_query<pre>"; print_r($tax_query); echo "</pre>";
+				}
 				$query->set('tax_query', $tax_query);
 			}
-			//echo "query<pre>"; print_r($query); echo "</pre>";
+			if (( current_user_can('manage_options') )  && ( $se_debug == true ) ){
+				echo "query<pre>"; print_r($query); echo "</pre>";
+			}
 		}
 
 		return $query;
@@ -2853,7 +2903,7 @@ class SimplyExclude
 			
 			<h3><a href="#">Can I use the Simply Exclude plugin to include other Post Types on my front page?</a></h3>
 			<div>
-				<p>Short answer, YES! Longer answer. This can be done but you need to be careful with the setup.</p>
+				<p>Short answer, YES! Longer answer. This can be done but you need to be careful with the setup. This <em>could</em> effect how other post_types are displayed.</p>
 
 				<p>First, some assumptions about your WordPress setup. You MUST be able to answer <strong>YES</strong> to the following</p>
 				<ol>
@@ -2864,13 +2914,17 @@ class SimplyExclude
 				<p>Here is the setup</p>
 				<ol>
 					<li>Go to the Simply Exclude <a href="admin.php?page=se_manage_settings">Settings panel</a>. Location the Post Type you want to manage</li>
-					<li>On the sub-panel ensure the Post Type is <strong>Active</strong>.</li>
-					<li>Next, find the row for <strong>Front/Home</strong>. Ensure the selection is set to <strong>Include All</strong></li>
-					<li>Finally, ensure the <strong>Show/Hide</strong> option is set to <strong>Show</strong>.</li>
-					<li>Now navigate to the Post Type listing. This is important. You must ensure no items are set to <strong>Include Only</strong> or <strong>Exclude</strong>.</li> 
+					<li>On the sub-panel ensure the Post Type is <strong>Active</strong>. Next, find the row for <strong>Front/Home</strong>. Ensure the selection is set to <strong>Include All</strong>. Finally, ensure the <strong>Show/Hide</strong> option is set to <strong>Show</strong>.</li>
+					<li>Now navigate to the Post Type listing. This is important. You must ensure no items are set to <strong>Include Only</strong> or <strong>Exclude</strong> for this Post Type.</li> 
 				</ol>
+
+				<p><strong>Notes:</strong></p>
+				<p>You can mix Post Types to include on the Home/Front page. For example you have a custom Post Type Books and you want to show Books and Posts on the Home/Front page. You should set both Post Types to <strong>Include All</strong>. You would also set one or both Post Types to <strong>Include only</strong>. The result is only those checked items will be includes. Similar results setting the Post Types to <strong>Exclude</strong> will exclude only those Post Type item.</li>
+					But the process is trial and errors. You need to make sure you review this in your own setup.</p>
+
+				<p>Also beware of setting one Post Type to <strong>Include all</strong> or <strong>Include only</strong> then setting a second Post Type as <strong>Exclude</strong>. The <strong>Exclude</strong> Post Type items will be processed while the <strong>Include all/only</strong> items will be ignored</p>	
 				
-				<p>Note you can also use the <strong>Include all</strong> on the Feeds actions for Post Types</p>
+				<p>You can also use the <strong>Include all</strong> on the Feeds actions for Post Types</p>
 			</div>
 
 			<h3><a href="#">I've configured the plugin to Include/Exclude a combination of Taxonomies and Post Types. Now my site is all messed up. How do I reset things to the default?</a></h3>
