@@ -4,9 +4,12 @@ Donate link: http://www.codehooligans.com
 Tags: admin, posts, pages, categories, tags, Post Type, Taxonomy, exclude, include, is_front, is_archive, is_search, is_feed, is_author
 Requires at least: 3.2
 Tested up to: 3.3.1
-Stable tag: 2.0.1
+Stable tag: 2.0.3
 
 == Description ==
+
+Note to all used who tried the version 2.0 and 2.0.1 there were was bugs in the logic which upgrades the previous version of the Simply Exclude configuration to the version 2.0 format. If you lost your settings you can now reload them manually. Simply go into simply Exclude > Settings and at the very bottom is an option to reload the configuration again. 
+
 
 Provides an interface to selectively exclude/include Post Types, Taxonomies and Authors 4 actions used by WordPress
 
@@ -45,6 +48,14 @@ At the time (version 1.6.1) the plugin only effects Pages included in the tradit
 3. New Help section to answer some of your questions.
 
 == Changelog == 
+
+= 2.0.3 =
+2012-03-18
+Fixes to core filtering logic. 
+
+= 2.0.2 = 
+2012-03-05 
+Fixed some issues when converting from the previous version of the Simply Exclude configurations. 
 
 = 2.0.1 =
 2012-03-04
