@@ -4,7 +4,7 @@ Plugin Name: Simply Exclude
 Plugin URI: http://www.codehooligans.com/projects/wordpress/simply-exclude/
 Description: Provides an interface to selectively exclude/include categories, tags and page from the 4 actions used by WordPress. is_front, is_archive, is_search, is_feed.
 Author: Paul Menard
-Version: 2.0.3
+Version: 2.0.4
 Author URI: http://www.codehooligans.com
 
 Revision history
@@ -22,6 +22,8 @@ Revision history
 2.0.1 - 2012-03-04 Small bug. On the new Simply Exclude Help panel I user the jQuery UI Accordion package. Seems I failed to check this when setting the minimum WordPress version I was supporting (3.2). Seems jQuery UI Accordion is not available in core WordPress until version 3.3. So have added my own libraries to cover the older versions of WordPress. Sorry about that. And thanks to @biswajeet for bringing this up in the WordPress forums.
 2.0.2 - 2012-03-05 Fixed some issues when converting from the previous version of the Simply Exclude configurations. 
 2.0.3 - 2012-03-18 Fixes to core filtering logic. 
+2.9.4 - 2012-05-16 Added new Settings option to allow control of filtering the main page WPQuery only or all WPQuery requests. Added exclusion for common post_types. General bug fixed for reported issues where filter was either not occurring or that filter was causing a blank page or missing navigation. 
+
 */
 
 define('SIMPLY_EXCLUDE_I18N_DOMAIN', 'simplyexclude');
@@ -58,7 +60,7 @@ class SimplyExclude
 		$this->page_hooks = array();
 		
 		/* Setup the tetdomain for i18n language handling see http://codex.wordpress.org/Function_Reference/load_plugin_textdomain */
-        load_plugin_textdomain( SIMPLY_EXCLUDE_I18N_DOMAIN, false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+        load_plugin_textdomain( SIMPLY_EXCLUDE_I18N_DOMAIN, false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
 		
 		add_action( 'init', array(&$this,'init_proc') );
 		add_action( 'admin_init', array(&$this,'admin_init_proc') );
@@ -649,6 +651,120 @@ class SimplyExclude
 	
 	
 	
+	
+	
+	/****************************************************************************************************************************/
+	/*																															*/
+	/*												QUERY OVERRIDE PANELS														*/
+	/*																															*/
+	/****************************************************************************************************************************/
+	
+	function se_show_taxonomy_query_override_panel($taxonomy)
+	{
+		if (!$taxonomy)	return;
+
+		if (!isset($this->se_cfg['data']['taxonomies'][$taxonomy]))
+			return;
+
+		$this->current_taxonomy = $this->se_cfg['data']['taxonomies'][$taxonomy];
+		
+
+		?>
+		<table class="widefat simply-exclude-settings-postbox simplyexclude-active-panel" cellpadding="3" cellspacing="3" border="0">
+		<thead>
+        <tr>
+        	<th class="action" colspan="2"><?php _e('Query Filtering', SIMPLY_EXCLUDE_I18N_DOMAIN) ?></th>
+        </tr>
+		</thead>
+		<tbody>
+		<tr>
+			<td class="description">
+				<p><?php _e("Override query filtering for Main Loop Only or All Loops?", SIMPLY_EXCLUDE_I18N_DOMAIN) ?></p>
+				<p><?php _e("The Simply-Exclude plugin was designed to only work with the main page query. But sometimes other plugins or your theme will effect how the main filtering works. So if you are having trouble attempting to filter categories from your home page you might want to try and set this option to 'All' and see if it corrects your issue.", SIMPLY_EXCLUDE_I18N_DOMAIN); ?></p>
+				</td>
+			<td class="inc-excl">
+				<input type="radio" name="se_cfg[<?php echo $taxonomy; ?>][options][qover]" value="main" 
+					<?php if ($this->current_taxonomy['options']['qover'] == 'main') 
+						echo "checked='checked'"; ?> /> <?php _e('Main Loop Only', SIMPLY_EXCLUDE_I18N_DOMAIN); ?><br />
+				<input type="radio" name="se_cfg[<?php echo $taxonomy; ?>][options][qover]" value="all" 
+					<?php if ($this->current_taxonomy['options']['qover'] == 'all') 
+						echo "checked='checked'"; ?> /> <?php _e('All Loops', SIMPLY_EXCLUDE_I18N_DOMAIN); ?>
+			</td>
+		</tr>
+		</table>
+		<?php
+	}
+
+	function se_show_post_type_query_override_panel($post_type)
+	{
+		if (!$post_type)	return;
+
+		if (!isset($this->se_cfg['data']['post_types'][$post_type]))
+			return;
+
+		$this->current_post_type = $this->se_cfg['data']['post_types'][$post_type];
+		
+		?>
+		<table class="widefat simply-exclude-settings-postbox simplyexclude-active-panel" cellpadding="3" cellspacing="3" border="0">
+		<thead>
+        <tr>
+        	<th class="action" colspan="2"><?php _e('Show/Hide', SIMPLY_EXCLUDE_I18N_DOMAIN) ?></th>
+        </tr>
+		</thead>
+		<tbody>
+		<tr>
+			<td class="description">
+				<p><?php _e("Override query filtering for Main Loop Only or All Loops?", SIMPLY_EXCLUDE_I18N_DOMAIN) ?></p>
+				<p><?php _e("The Simply-Exclude plugin was designed to only work with the main page query. But sometimes other plugins or your theme will effect how the main filtering works. So if you are having trouble attempting to filter categories from your home page you might want to try and set this option to 'All' and see if it corrects your issue.", SIMPLY_EXCLUDE_I18N_DOMAIN); ?></p>
+			</td>
+			<td class="inc-excl">
+				<input type="radio" name="se_cfg[<?php echo $post_type; ?>][options][qover]" value="main" 
+					<?php if ($this->current_post_type['options']['qover'] == 'main') 
+						echo "checked='checked'"; ?> /> <?php _e('Main Loop Only', SIMPLY_EXCLUDE_I18N_DOMAIN); ?><br />
+				<input type="radio" name="se_cfg[<?php echo $post_type; ?>][options][qover]" value="all" 
+					<?php if ($this->current_post_type['options']['qover'] == 'all') 
+						echo "checked='checked'"; ?> /> <?php _e('All Loops', SIMPLY_EXCLUDE_I18N_DOMAIN); ?>
+			</td>
+		</tr>
+		</table>
+		<?php
+	}
+	
+	function se_show_se_type_query_override_panel($se_type)
+	{
+		if (!$se_type)	return;
+
+		if (!isset($this->se_cfg['data']['se_types'][$se_type]))
+			return;
+
+		$this->current_se_type = $this->se_cfg['data']['se_types'][$se_type];
+		
+		?>
+		<table class="widefat simply-exclude-settings-postbox simplyexclude-active-panel" cellpadding="3" cellspacing="3" border="0">
+		<thead>
+        <tr>
+        	<th class="action" colspan="2"><?php _e('Show/Hide', SIMPLY_EXCLUDE_I18N_DOMAIN) ?></th>
+        </tr>
+		</thead>
+		<tbody>
+		<tr>
+			<td class="description">
+				<p><?php _e("Override query filtering for Main Loop Only or All Loops?", SIMPLY_EXCLUDE_I18N_DOMAIN) ?></p>
+				<p><?php _e("The Simply-Exclude plugin was designed to only work with the main page query. But sometimes other plugins or your theme will effect how the main filtering works. So if you are having trouble attempting to filter categories from your home page you might want to try and set this option to 'All' and see if it corrects your issue.", SIMPLY_EXCLUDE_I18N_DOMAIN); ?></p>
+			</td>
+			<td class="inc-excl">
+				<input type="radio" name="se_cfg[<?php echo $se_type; ?>][options][qover]" value="main" 
+					<?php if ($this->current_se_type['options']['qover'] == 'main') 
+						echo "checked='checked'"; ?> /> <?php _e('Main Loop Only', SIMPLY_EXCLUDE_I18N_DOMAIN); ?><br />
+				<input type="radio" name="se_cfg[<?php echo $se_type; ?>][options][qover]" value="all" 
+					<?php if ($this->current_se_type['options']['qover'] == 'all') 
+						echo "checked='checked'"; ?> /> <?php _e('All Loops', SIMPLY_EXCLUDE_I18N_DOMAIN); ?>
+			</td>
+		</tr>
+		</table>
+		<?php
+	}
+	
 	/****************************************************************************************************************************/
 	/*																															*/
 	/*												COLUMNS (HEADERS)															*/
@@ -1130,6 +1246,9 @@ class SimplyExclude
 				else if ($this->se_cfg['data']['taxonomies'][$t_item->name]['options']['showhide'] == "no")
 					$this->se_cfg['data']['taxonomies'][$t_item->name]['options']['showhide'] = 'hide';
 				
+				if (!isset($this->se_cfg['data']['taxonomies'][$t_item->name]['options']['qover']))
+					$this->se_cfg['data']['taxonomies'][$t_item->name]['options']['qover'] = 'main';				
+
 				$this->se_cfg['data']['taxonomies'][$t_item->name]['options']['hierarchical'] = $t_item->hierarchical;
 					
 			}
@@ -1157,6 +1276,7 @@ class SimplyExclude
 
 				if (!isset($this->se_cfg['data']['post_types'][$t_item->name]['options']['active']))
 					$this->se_cfg['data']['post_types'][$t_item->name]['options']['active'] = 'yes';
+
 				if (!isset($this->se_cfg['data']['post_types'][$t_item->name]['options']['showhide']))
 					$this->se_cfg['data']['post_types'][$t_item->name]['options']['showhide'] = 'show';						
 
@@ -1164,6 +1284,9 @@ class SimplyExclude
 					$this->se_cfg['data']['post_types'][$t_item->name]['options']['showhide'] = 'show';				
 				else if ($this->se_cfg['data']['post_types'][$t_item->name]['options']['showhide'] == "no")
 					$this->se_cfg['data']['post_types'][$t_item->name]['options']['showhide'] = 'hide';
+				
+				if (!isset($this->se_cfg['data']['post_types'][$t_item->name]['options']['qover']))
+					$this->se_cfg['data']['post_types'][$t_item->name]['options']['qover'] = 'main';						
 				
 				$this->se_cfg['data']['post_types'][$t_item->name]['options']['capability_type'] = $t_item->capability_type;
 			}
@@ -1197,6 +1320,9 @@ class SimplyExclude
 					$this->se_cfg['data']['se_types'][$t_item['name']]['options']['showhide'] = 'show';				
 				else if ($this->se_cfg['data']['se_types'][$t_item['name']]['options']['showhide'] == "no")
 					$this->se_cfg['data']['se_types'][$t_item['name']]['options']['showhide'] = 'hide';
+
+				if (!isset($this->se_cfg['data']['se_types'][$t_item['name']]['options']['qover']))
+					$this->se_cfg['data']['se_types'][$t_item['name']]['options']['qover'] = 'main';						
 			}
 		}
 
@@ -1900,32 +2026,47 @@ class SimplyExclude
 		global $wp_version;
 
 		// We don't process filtering for admin. ever!
-		if (is_admin())
+		if ((is_admin()) || ($query->is_admin))
 			return $query;
-			
-		if ( version_compare( $wp_version, '3.3.0', '<' ) ) {
-			
-			global $wp_the_query;
-			return $wp_the_query === $query;
-				return $query;
-
-	    } else {
-			if (!is_main_query())
-				return $query;
-		}
- 	
-
-		// Ignore all queries from within wp-admin. 
-		if ($query->is_admin)
-			return $query;
-
-		$this->se_load_config();
 
 		// Check our debug
-		if (isset($_GET['SE_DEBUG']))
+		if (( current_user_can('manage_options') )  && (isset($_GET['SE_DEBUG'])))
 			$se_debug = true;
 		else
 			$se_debug = false;
+
+		// Normally we only want to handle the main page loop. But sometimes...
+		$is_main_query_loop = true;
+		
+		if (!function_exists('is_main_query'))	{
+			global $wp_the_query;
+			if ($wp_the_query !== $query)
+				$is_main_query_loop = false;
+
+	    } else {
+			if (!is_main_query())
+				$is_main_query_loop = false;
+		}
+		
+		if ( $se_debug == true ) {
+		
+			if ($is_main_query_loop == true)
+				echo "is_main_query_loop=[true]<br />";
+			else
+				echo "is_main_query_loop=[false]<br />";
+		}
+		
+		if ($is_main_query_loop != true)
+			return $query;
+
+		if (isset($query->query_vars['post_type'])) {
+		
+			if (array_Search($query->query_vars['post_type'], $this->se_post_types_exclude) !== false)
+				return $query;
+		}
+		
+		
+		$this->se_load_config();
 
 			
 		$action_data = array();
@@ -1948,7 +2089,7 @@ class SimplyExclude
 			$action_data = $this->se_get_action_data('is_archive');			
 		}
 
-		if (( current_user_can('manage_options') )  && ( $se_debug == true ) ){
+		if ( $se_debug == true ) {
 			echo "action_data<pre>"; print_r($action_data); echo "</pre>";
 		}
 		
@@ -1963,6 +2104,9 @@ class SimplyExclude
 				{
 					foreach($key_data as $key_key => $key_key_data)
 					{
+						if (($is_main_query_loop == false) && ($this->se_cfg['data']['taxonomies'][$key_key]['options']['qover'] == "main"))
+							continue;
+							
 						$tax_args = array(
 							'taxonomy' 	=> $key_key,
 							'field' 	=> 'id',
@@ -1989,8 +2133,12 @@ class SimplyExclude
 					$post__in = array();
 					$post__not_in = array();
 					$post__all = array();
+
 					foreach($key_data as $key_key => $key_key_data)
 					{						
+						if (($is_main_query_loop == false) && ($this->se_cfg['data']['post_types'][$key_key]['options']['qover'] == "main"))
+							continue;
+
 						if ($key_key_data['actions'] == 'e') {
 							$post__not_in = array_merge($post__not_in, $key_key_data['terms']);
 							$post_types_array['__not_in'][] = $key_key;
@@ -2019,7 +2167,7 @@ class SimplyExclude
 					{
 						$query_post_types = array($query_post_types);
 					}
-					if (( current_user_can('manage_options') )  && ( $se_debug == true ) ){
+					if ( $se_debug == true ) {
 						echo "query_post_types<pre>"; print_r($query_post_types); echo "</pre>";
 						echo "post_types_array<pre>"; print_r($post_types_array); echo "</pre>";
 					}
@@ -2029,7 +2177,7 @@ class SimplyExclude
 					{
 						$query->set('post__not_in', $post__not_in);
 						
-						if (( current_user_can('manage_options') )  && ( $se_debug == true ) ){
+						if ( $se_debug == true ) {
 							
 							echo "PROCESSING: POST__NOT_IN<br />";
 							echo "post__not_in<pre>"; print_r($post__not_in); echo "</pre>";
@@ -2044,7 +2192,7 @@ class SimplyExclude
 							$merged_query_post_types = array_unique(array_merge($post_types_array['__in'], $query_post_types));
 							$query->set('post_type', $merged_query_post_types);
 						}						
-						if (( current_user_can('manage_options') )  && ( $se_debug == true ) ){
+						if ( $se_debug == true ) {
 							echo "PROCESSING: POST__IN<br />";
 							echo "post__in<pre>"; print_r($post__in); echo "</pre>";
 							echo "merged_query_post_types<pre>"; print_r($merged_query_post_types); echo "</pre>";
@@ -2054,7 +2202,7 @@ class SimplyExclude
 					{
 						$merged_query_post_types = array_unique(array_merge($post_types_array['all'], $query_post_types));
 
-						if (( current_user_can('manage_options') )  && ( $se_debug == true ) ){
+						if ( $se_debug == true ) {
 							echo "post_types_array[all]<pre>"; print_r($post_types_array['all']); echo "</pre>";
 							echo "merged_query_post_types<pre>"; print_r($merged_query_post_types); echo "</pre>";
 						}
@@ -2065,6 +2213,9 @@ class SimplyExclude
 				{
 					foreach($key_data as $key_key => $key_key_data)
 					{
+						if (($is_main_query_loop == false) && ($this->se_cfg['data']['se_types'][$key_key]['options']['qover'] == "main"))
+							continue;
+						
 						if ($key_key == "users")
 						{
 							$user_ids = $this->se_listify_ids($key_key_data['terms'], $key_key_data['actions']);
@@ -2072,7 +2223,7 @@ class SimplyExclude
 							{
 								$query->set('author', $user_ids);
 
-								if (( current_user_can('manage_options') )  && ( $se_debug == true ) ){
+								if ( $se_debug == true ) {
 									echo "user_ids=[". $user_ids ."]<br />";
 								}								
 							}
@@ -2087,12 +2238,12 @@ class SimplyExclude
 				else
 					$tax_query['relation'] = "AND";
 
-				if (( current_user_can('manage_options') )  && ( $se_debug == true ) ){
+				if ( $se_debug == true ) {
 					echo "tax_query<pre>"; print_r($tax_query); echo "</pre>";
 				}
 				$query->set('tax_query', $tax_query);
 			}
-			if (( current_user_can('manage_options') )  && ( $se_debug == true ) ){
+			if ( $se_debug == true ) {
 				echo "query<pre>"; print_r($query); echo "</pre>";
 			}
 		}
@@ -2700,6 +2851,7 @@ class SimplyExclude
 				$this->se_show_taxonomy_active_panel($taxonomy->name);
 				$this->se_show_taxonomy_actions_panel($taxonomy->name);
 				$this->se_show_taxonomy_showhide_panel($taxonomy->name);				
+				$this->se_show_taxonomy_query_override_panel($taxonomy->name);				
 			}
 		}
 	}
@@ -2716,6 +2868,8 @@ class SimplyExclude
 				$this->se_show_post_type_active_panel($post_type->name);
 				$this->se_show_post_type_actions_panel($post_type->name);
 				$this->se_show_post_type_showhide_panel($post_type->name);
+				$this->se_show_post_type_query_override_panel($post_type->name);
+				
 			}
 		}				
 	}
@@ -2727,6 +2881,7 @@ class SimplyExclude
 		$this->se_show_se_type_active_panel('users');
 		$this->se_show_se_type_actions_panel('users');
 		$this->se_show_se_type_showhide_panel('users');
+		$this->se_show_se_type_query_override_panel('users');
 	}
 	
 	function se_display_configuration_reload_actions_panel() {
