@@ -2,9 +2,9 @@
 /*
 Plugin Name: Simply Exclude
 Plugin URI: http://www.codehooligans.com/projects/wordpress/simply-exclude/
-Description: Provides an interface to selectively exclude/include categories, tags and page from the 4 actions used by WordPress. is_front, is_archive, is_search, is_feed.
+Description: Provides an interface to selectively exclude/include all Taxonomies, Post Types and Users from the 4 actions used by WordPress. is_front, is_archive, is_search, is_feed. Also provides access to some of the common widgets user like tag cloud and categories listings. 
 Author: Paul Menard
-Version: 2.0.4
+Version: 2.0.5
 Author URI: http://www.codehooligans.com
 
 Revision history
@@ -22,8 +22,8 @@ Revision history
 2.0.1 - 2012-03-04 Small bug. On the new Simply Exclude Help panel I user the jQuery UI Accordion package. Seems I failed to check this when setting the minimum WordPress version I was supporting (3.2). Seems jQuery UI Accordion is not available in core WordPress until version 3.3. So have added my own libraries to cover the older versions of WordPress. Sorry about that. And thanks to @biswajeet for bringing this up in the WordPress forums.
 2.0.2 - 2012-03-05 Fixed some issues when converting from the previous version of the Simply Exclude configurations. 
 2.0.3 - 2012-03-18 Fixes to core filtering logic. 
-2.9.4 - 2012-05-16 Added new Settings option to allow control of filtering the main page WPQuery only or all WPQuery requests. Added exclusion for common post_types. General bug fixed for reported issues where filter was either not occurring or that filter was causing a blank page or missing navigation. 
-
+2.0.4 - 2012-05-16 Added new Settings option to allow control of filtering the main page WPQuery only or all WPQuery requests. Added exclusion for common post_types. General bug fixed for reported issues where filter was either not occurring or that filter was causing a blank page or missing navigation. 
+2.0.5 - 2012-05-17 More tweaks to the widget exclude logic and cleanup logic on main query vs extra query.
 */
 
 define('SIMPLY_EXCLUDE_I18N_DOMAIN', 'simplyexclude');
@@ -60,7 +60,7 @@ class SimplyExclude
 		$this->page_hooks = array();
 		
 		/* Setup the tetdomain for i18n language handling see http://codex.wordpress.org/Function_Reference/load_plugin_textdomain */
-        load_plugin_textdomain( SIMPLY_EXCLUDE_I18N_DOMAIN, false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
+        load_plugin_textdomain( SIMPLY_EXCLUDE_I18N_DOMAIN, false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 		
 		add_action( 'init', array(&$this,'init_proc') );
 		add_action( 'admin_init', array(&$this,'admin_init_proc') );
@@ -708,7 +708,7 @@ class SimplyExclude
 		<table class="widefat simply-exclude-settings-postbox simplyexclude-active-panel" cellpadding="3" cellspacing="3" border="0">
 		<thead>
         <tr>
-        	<th class="action" colspan="2"><?php _e('Show/Hide', SIMPLY_EXCLUDE_I18N_DOMAIN) ?></th>
+        	<th class="action" colspan="2"><?php _e('Query Filtering', SIMPLY_EXCLUDE_I18N_DOMAIN) ?></th>
         </tr>
 		</thead>
 		<tbody>
@@ -743,7 +743,7 @@ class SimplyExclude
 		<table class="widefat simply-exclude-settings-postbox simplyexclude-active-panel" cellpadding="3" cellspacing="3" border="0">
 		<thead>
         <tr>
-        	<th class="action" colspan="2"><?php _e('Show/Hide', SIMPLY_EXCLUDE_I18N_DOMAIN) ?></th>
+        	<th class="action" colspan="2"><?php _e('Query Filtering', SIMPLY_EXCLUDE_I18N_DOMAIN) ?></th>
         </tr>
 		</thead>
 		<tbody>
@@ -2036,18 +2036,12 @@ class SimplyExclude
 			$se_debug = false;
 
 		// Normally we only want to handle the main page loop. But sometimes...
-		$is_main_query_loop = true;
+		$is_main_query_loop = false;
 		
-		if (!function_exists('is_main_query'))	{
-			global $wp_the_query;
-			if ($wp_the_query !== $query)
-				$is_main_query_loop = false;
+		global $wp_the_query;
+		if ($wp_the_query === $query)
+			$is_main_query_loop = true;
 
-	    } else {
-			if (!is_main_query())
-				$is_main_query_loop = false;
-		}
-		
 		if ( $se_debug == true ) {
 		
 			if ($is_main_query_loop == true)
@@ -2056,12 +2050,9 @@ class SimplyExclude
 				echo "is_main_query_loop=[false]<br />";
 		}
 		
-		if ($is_main_query_loop != true)
-			return $query;
-
 		if (isset($query->query_vars['post_type'])) {
 		
-			if (array_Search($query->query_vars['post_type'], $this->se_post_types_exclude) !== false)
+			if (array_search($query->query_vars['post_type'], $this->se_post_types_exclude) !== false)
 				return $query;
 		}
 		
@@ -2167,9 +2158,12 @@ class SimplyExclude
 					{
 						$query_post_types = array($query_post_types);
 					}
+					
 					if ( $se_debug == true ) {
 						echo "query_post_types<pre>"; print_r($query_post_types); echo "</pre>";
 						echo "post_types_array<pre>"; print_r($post_types_array); echo "</pre>";
+						echo "post__not_in<pre>"; print_r($post__not_in); echo "</pre>";
+						echo "post__in<pre>"; print_r($post__in); echo "</pre>";
 					}
 
 
