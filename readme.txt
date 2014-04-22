@@ -1,10 +1,12 @@
 === Simply Exclude ===
-Contributors: Paul Menard
+Contributors: pmenard
 Donate link: http://www.codehooligans.com
 Tags: admin, posts, pages, categories, tags, Post Type, Taxonomy, exclude, include, is_front, is_archive, is_search, is_feed, is_author
 Requires at least: 3.7
 Tested up to: 3.9
 Stable tag: 2.0.6.1
+License: GPLv2
+License URI: http://www.opensource.org/licenses/GPL-2.0
 
 == Description ==
 
