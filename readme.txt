@@ -2,8 +2,8 @@
 Contributors: Paul Menard
 Donate link: http://www.codehooligans.com
 Tags: admin, posts, pages, categories, tags, Post Type, Taxonomy, exclude, include, is_front, is_archive, is_search, is_feed, is_author
-Requires at least: 3.5
-Tested up to: 3.6
+Requires at least: 3.7
+Tested up to: 3.9
 Stable tag: 2.0.6.1
 
 == Description ==
