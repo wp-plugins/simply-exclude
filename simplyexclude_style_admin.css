@@ -1,8 +1,9 @@
+/*
 input.se-term-input {
 	width: 15px;
 	float: left;
 }
-
+*/
 table.simplyexclude-actions-panel td.action {
 	width: 20%;
 }
@@ -48,6 +49,17 @@ td.inc-excl ul.se-actions-list li {
 	list-style: none;
 	width: 100%;
 }
+
+td.column-se-actions ul.se-actions-list li input.se-term-input {
+	width: 15px;
+	/* float: left; */
+}
+
+td.column-se-actions ul.se-actions-list li label {
+	/* float: left; */
+	vertical-align: top;
+}
+
 
 .ui-accordion-header {
     border-top-left-radius: 3px;

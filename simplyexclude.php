@@ -4,7 +4,7 @@ Plugin Name: Simply Exclude
 Plugin URI: http://www.codehooligans.com/projects/wordpress/simply-exclude/
 Description: Provides an interface to selectively exclude/include all Taxonomies, Post Types and Users from the 4 actions used by WordPress. is_front, is_archive, is_search, is_feed. Also provides access to some of the common widgets user like tag cloud and categories listings. 
 Author: Paul Menard
-Version: 2.0.6.1
+Version: 2.0.6.2
 Author URI: http://www.codehooligans.com
 */
 
@@ -32,7 +32,7 @@ class SimplyExclude
 	
 	public function __construct() {
 		
-		$this->se_version	= "2.0.6.1";
+		$this->se_version	= "2.0.6.2";
 		
 		$this->admin_menu_label	= __("Simply Exclude", SIMPLY_EXCLUDE_I18N_DOMAIN);
 		$this->options_key		= "simplyexclude_v2";
@@ -748,7 +748,7 @@ class SimplyExclude
 	{
 		if (current_user_can('manage_options')) {		
 			if (!isset($columns['se-actions']))	
-				$columns['se-actions'] = __('Simply Exclude', SIMPLY_EXCLUDE_I18N_DOMAIN). ' <a id="se-show-actions-panel" href="#">'. __('show', SIMPLY_EXCLUDE_I18N_DOMAIN) .'</a>';
+				$columns['se-actions'] = '<a id="se-show-actions-panel" title="" href="#">'. __('Simply Exclude', SIMPLY_EXCLUDE_I18N_DOMAIN) .'</a>';
 		}
 		return $columns;
 	}
@@ -2358,10 +2358,12 @@ class SimplyExclude
 			
 		$this->se_load_config();
 		
+		//echo "widget_category<pre>"; print_r($this->se_cfg['data']['taxonomies']['category']['terms']['widget_category']); echo "</pre>";
+		
 		if ( (isset($this->se_cfg['data']['taxonomies']['category']['terms']['widget_category']))
 		  && (count($this->se_cfg['data']['taxonomies']['category']['terms']['widget_category'])) )
 		{
-			$action = $this->se_cfg['data']['taxonomies']['category']['actions']['widget_category']['action'];
+			$action = $this->se_cfg['data']['taxonomies']['category']['actions']['widget_category'];
 			$terms 	= $this->se_cfg['data']['taxonomies']['category']['terms']['widget_category'];
 
 			$all_cat_ids = array();
@@ -2413,7 +2415,7 @@ class SimplyExclude
 				if ( (isset($this->se_cfg['data']['taxonomies']['post_tag']['terms']['widget_tag_cloud']))
 				  && (count($this->se_cfg['data']['taxonomies']['post_tag']['terms']['widget_tag_cloud'])) )
 				{
-					$action = $this->se_cfg['data']['taxonomies']['post_tag']['actions']['widget_tag_cloud']['action'];
+					$action = $this->se_cfg['data']['taxonomies']['post_tag']['actions']['widget_tag_cloud'];
 					$terms 	= $this->se_cfg['data']['taxonomies']['post_tag']['terms']['widget_tag_cloud'];
 
 					$all_tags = get_tags('hide_empty=0&orderby=name&order=ASC');			
@@ -2454,7 +2456,7 @@ class SimplyExclude
 				if ( (isset($this->se_cfg['data']['taxonomies']['category']['terms']['widget_tag_cloud']))
 				  && (count($this->se_cfg['data']['taxonomies']['category']['terms']['widget_tag_cloud'])) )
 				{
-					$action = $this->se_cfg['data']['taxonomies']['category']['actions']['widget_tag_cloud']['action'];
+					$action = $this->se_cfg['data']['taxonomies']['category']['actions']['widget_tag_cloud'];
 					$terms 	= $this->se_cfg['data']['taxonomies']['category']['terms']['widget_tag_cloud'];
 
 					$all_cat_ids = array();

@@ -4,7 +4,7 @@ Donate link: http://www.codehooligans.com
 Tags: admin, posts, pages, categories, tags, Post Type, Taxonomy, exclude, include, is_front, is_archive, is_search, is_feed, is_author
 Requires at least: 3.7
 Tested up to: 3.9
-Stable tag: 2.0.6.1
+Stable tag: 2.0.6.2
 License: GPLv2
 License URI: http://www.opensource.org/licenses/GPL-2.0
 
@@ -49,6 +49,10 @@ At the time (version 1.6.1) the plugin only effects Pages included in the tradit
 3. New Help section to answer some of your questions.
 
 == Changelog == 
+
+= 2.0.6.2 =
+- Corrected reported issue related to undefined 'action' settings in the widget hooks. Thanks Arnold. 
+- Cleanup some of the CSS related to settings used within the dashboard area.
 
 = 2.0.6.1 =
 Corrected issue with reported PHP 5.4 related code.
