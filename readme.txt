@@ -2,9 +2,9 @@
 Contributors: pmenard
 Donate link: http://www.codehooligans.com
 Tags: admin, posts, pages, categories, tags, Post Type, Taxonomy, exclude, include, is_front, is_archive, is_search, is_feed, is_author
-Requires at least: 3.7
-Tested up to: 3.9
-Stable tag: 2.0.6.2
+Requires at least: 3.9
+Tested up to: 4,1
+Stable tag: 2.0.6.3
 License: GPLv2
 License URI: http://www.opensource.org/licenses/GPL-2.0
 
@@ -49,6 +49,9 @@ At the time (version 1.6.1) the plugin only effects Pages included in the tradit
 3. New Help section to answer some of your questions.
 
 == Changelog == 
+
+= 2.0.6.3 =
+- Updated logic such that excluding posts for Archive will also automatically exclude post from Archive Widget. This way you don't get links showing from the widget that cause 404 errors. See support thread https://wordpress.org/support/topic/archive-month-shows-when-all-posts-in-month-are-excluded-giving-404-error
 
 = 2.0.6.2 =
 - Corrected reported issue related to undefined 'action' settings in the widget hooks. Thanks Arnold. 

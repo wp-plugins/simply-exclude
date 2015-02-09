@@ -4,8 +4,13 @@ Plugin Name: Simply Exclude
 Plugin URI: http://www.codehooligans.com/projects/wordpress/simply-exclude/
 Description: Provides an interface to selectively exclude/include all Taxonomies, Post Types and Users from the 4 actions used by WordPress. is_front, is_archive, is_search, is_feed. Also provides access to some of the common widgets user like tag cloud and categories listings. 
 Author: Paul Menard
-Version: 2.0.6.2
+Version: 2.0.6.3
 Author URI: http://www.codehooligans.com
+Text Domain: simplyexclude
+Domain Path: /languages
+License: GNU General Public License v2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
+
 */
 
 define('SIMPLY_EXCLUDE_I18N_DOMAIN', 'simplyexclude');
@@ -126,6 +131,10 @@ class SimplyExclude
 
 			// Support for the Tag Clod widget. This widget supports both the post_tag and category taxonomies.
 			add_filter('widget_tag_cloud_args', array(&$this, 'se_widget_tag_cloud_args_proc'));	
+			
+			// Support for Archive widget. This widget will output a month or year archive listing/dropdown of posts
+			add_filter('getarchives_where', array($this, 'se_widget_getarchives_where'), 99, 2);
+			
 		}
 	}
 	
@@ -1663,6 +1672,7 @@ class SimplyExclude
 			$taxonomy_actions['is_archive'] 		= "e";
 			$taxonomy_actions['is_search'] 			= "e";
 			$taxonomy_actions['is_feed'] 			= "e";
+			//$taxonomy_actions['widget_archives'] 	= "e";
 		}
 		else if ($post_type == "page")
 		{			
@@ -1905,6 +1915,25 @@ class SimplyExclude
 
 					default:
 						return;
+				}
+				return;
+				break;
+
+			case 'widget_archives':
+
+				if ($post_type == "post") {
+					switch($key)
+					{
+						case 'name':
+							return __("Widget: Archives", SIMPLY_EXCLUDE_I18N_DOMAIN);
+							break;
+
+						case 'description':
+							return __("Exclude from Post Archives Widget.", SIMPLY_EXCLUDE_I18N_DOMAIN);
+
+						default:
+							return;
+					}
 				}
 				return;
 				break;
@@ -2494,9 +2523,73 @@ class SimplyExclude
 		return $args;
 	}
 	
-	
-	
+	function se_widget_getarchives_where($where_sql, $args) {
+		if (is_admin()) return $where;
 		
+		//echo "where_sql[". $where_sql ."]<br />";
+		//echo "args<pre>"; print_r($args); echo "</pre>";
+		
+		$this->se_load_config();
+		
+		//echo "se_cfg<pre>"; print_r($this->se_cfg); echo "</pre>";
+		$action_data = $this->se_get_action_data('is_archive');			
+		//echo "action_data<pre>"; print_r($action_data); echo "</pre>";
+		//die();
+		
+		
+		$post__in = array();
+		$post__not_in = array();
+		
+		if ($action_data) {
+			foreach($action_data as $key => $key_data) {
+				if ($key == "post_types") {
+					
+					foreach($key_data as $key_key => $key_key_data) {
+						//echo "key_key[". $key_key ."]<br />";
+						//echo "key_key_data<pre>"; print_r($key_key_data); echo "</pre>";
+						
+						if ($key_key_data['actions'] == 'e') {
+							$post__not_in = array_merge($post__not_in, $key_key_data['terms']);
+							
+						} else if ($key_key_data['actions'] == 'i') {
+							$post__in = array_merge($post__in, $key_key_data['terms']);
+						} 
+					}
+				} else if ($key == "taxonomies") {
+					
+					foreach($key_data as $key_key => $key_key_data) {
+						//echo "key_key[". $key_key ."]<br />";
+						//echo "key_key_data<pre>"; print_r($key_key_data); echo "</pre>";
+						if ((isset($key_key_data['terms'])) && (!empty($key_key_data['terms']))) {
+							$posts_ids = get_objects_in_term( $key_key_data['terms'], $key_key );
+							if ( !is_wp_error( $posts_ids ) ) {
+								//echo "posts_ids<pre>"; print_r($posts_ids); echo "</pre>";
+						
+								if ($key_key_data['actions'] == 'e') {
+									$post__not_in = array_merge($post__not_in, $posts_ids);
+								} else if ($key_key_data['actions'] == 'i') {
+									$post__in = array_merge($post__in, $posts_ids);
+								} 
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		if (!empty($post__not_in)) {
+			//echo "post__not_in<pre>"; print_r($post__not_in); echo "</pre>";
+			$where_sql .= " AND ID NOT IN(". implode(',', $post__not_in) .") ";
+			
+		} else if (!empty($post__in)) {
+			//echo "post__in<pre>"; print_r($post__in); echo "</pre>";
+			$where_sql .= " AND ID IN(". implode(',', $post__not_in) .") ";
+		}
+		//echo "where_sql[". $where_sql ."]<br />";
+		
+		return $where_sql;
+	}
+	
 	function se_admin_footer()
 	{
 		if ( !current_user_can('manage_options') )
