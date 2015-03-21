@@ -3,7 +3,7 @@ Contributors: pmenard
 Donate link: http://www.codehooligans.com
 Tags: admin, posts, pages, categories, tags, Post Type, Taxonomy, exclude, include, is_front, is_archive, is_search, is_feed, is_author
 Requires at least: 3.9
-Tested up to: 4.2
+Tested up to: 4,1
 Stable tag: 2.0.6.4
 License: GPLv2
 License URI: http://www.opensource.org/licenses/GPL-2.0
@@ -51,8 +51,8 @@ At the time (version 1.6.1) the plugin only effects Pages included in the tradit
 == Changelog == 
 
 = 2.0.6.4 =
-- Corrected reported error with second argument on se_widget_getarchives_where(). 
-- Added a defined option 'SE_FILTERS_PRIORITY' to control the priority of the main pre_get_posts se_filter. This priority can also be controlled via a filter 'se_filters_priority' which is called prior to the setup for the pre_get_posts filter. 
+- Corrected issue reported related to Missing argument 2 for SimplyExclude::se_widget_getarchives_where()
+- Added a filter 'se_filters_priority' to allow control the priority of the se_filter hook. This can also be set via a define in wp-config.php or functions.php as define('SE_FILTERS_PRIORITY', 99); 
 
 = 2.0.6.3 =
 - Updated logic such that excluding posts for Archive will also automatically exclude post from Archive Widget. This way you don't get links showing from the widget that cause 404 errors. See support thread https://wordpress.org/support/topic/archive-month-shows-when-all-posts-in-month-are-excluded-giving-404-error
