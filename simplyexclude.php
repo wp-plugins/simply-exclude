@@ -4,7 +4,7 @@ Plugin Name: Simply Exclude
 Plugin URI: http://www.codehooligans.com/projects/wordpress/simply-exclude/
 Description: Provides an interface to selectively exclude/include all Taxonomies, Post Types and Users from the 4 actions used by WordPress. is_front, is_archive, is_search, is_feed. Also provides access to some of the common widgets user like tag cloud and categories listings. 
 Author: Paul Menard
-Version: 2.0.6.3
+Version: 2.0.6.6
 Author URI: http://www.codehooligans.com
 Text Domain: simplyexclude
 Domain Path: /languages
@@ -37,7 +37,7 @@ class SimplyExclude
 	
 	public function __construct() {
 		
-		$this->se_version	= "2.0.6.2";
+		$this->se_version	= "2.0.6.6";
 		
 		$this->admin_menu_label	= __("Simply Exclude", SIMPLY_EXCLUDE_I18N_DOMAIN);
 		$this->options_key		= "simplyexclude_v2";
@@ -58,8 +58,17 @@ class SimplyExclude
 		add_action( 'admin_footer', array(&$this,'se_admin_footer') );				
 		add_action( 'wp_ajax_se_update', array(&$this, 'se_ajax_update') );
 
+		// In 2.0.6.4 added a define to allow control of the SE_FILTERS_PRIORITY
+		//https://wordpress.org/support/topic/first-install-problems-in-wordpress-40?replies=3#post-6579114
+		if (defined('SE_FILTERS_PRIORITY'))
+			$SE_FILTERS_PRIORITY = intval(SE_FILTERS_PRIORITY);
+		else {
+			$SE_FILTERS_PRIORITY = 999;
+		}
+		$SE_FILTERS_PRIORITY = apply_filters('se_filters_priority', $SE_FILTERS_PRIORITY);
+
 		// Used to limit the categories displayed on the home page. Simple
-		add_filter('pre_get_posts', array(&$this,'se_filters'), 999);
+		add_filter('pre_get_posts', 			array($this,'se_filters'), $SE_FILTERS_PRIORITY);
 	}
 
 	function admin_init_proc()
@@ -133,7 +142,7 @@ class SimplyExclude
 			add_filter('widget_tag_cloud_args', array(&$this, 'se_widget_tag_cloud_args_proc'));	
 			
 			// Support for Archive widget. This widget will output a month or year archive listing/dropdown of posts
-			add_filter('getarchives_where', array($this, 'se_widget_getarchives_where'), 99, 2);
+			add_filter('getarchives_where', array($this, 'se_widget_getarchives_where'), 99);
 			
 		}
 	}
@@ -2367,8 +2376,9 @@ class SimplyExclude
 		  && (count($this->se_cfg['data']['post_types']['page']['terms']['widget_pages'])) )
 		{
 			//echo "se_cfg<pre>"; print_r($this->se_cfg['data']['post_types']['page']); echo "</pre>";
+			//die();
 
-			$action = $this->se_cfg['data']['post_types']['page']['actions']['widget_pages']['action'];
+			$action = $this->se_cfg['data']['post_types']['page']['actions']['widget_pages'];
 			$terms 	= $this->se_listify_ids(array_keys($this->se_cfg['data']['post_types']['page']['terms']['widget_pages']), 'i');
 			//echo "terms<pre>"; print_r($terms); echo "</pre>";
 			if ($action == "e")
@@ -2523,8 +2533,8 @@ class SimplyExclude
 		return $args;
 	}
 	
-	function se_widget_getarchives_where($where_sql, $args) {
-		if (is_admin()) return $where;
+	function se_widget_getarchives_where($where_sql) {
+		if (is_admin()) return $where_sql;
 		
 		//echo "where_sql[". $where_sql ."]<br />";
 		//echo "args<pre>"; print_r($args); echo "</pre>";
