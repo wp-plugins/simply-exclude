@@ -4,7 +4,7 @@ Plugin Name: Simply Exclude
 Plugin URI: http://www.codehooligans.com/projects/wordpress/simply-exclude/
 Description: Provides an interface to selectively exclude/include all Taxonomies, Post Types and Users from the 4 actions used by WordPress. is_front, is_archive, is_search, is_feed. Also provides access to some of the common widgets user like tag cloud and categories listings. 
 Author: Paul Menard
-Version: 2.0.6.3
+Version: 2.0.6.4
 Author URI: http://www.codehooligans.com
 Text Domain: simplyexclude
 Domain Path: /languages
@@ -58,8 +58,17 @@ class SimplyExclude
 		add_action( 'admin_footer', array(&$this,'se_admin_footer') );				
 		add_action( 'wp_ajax_se_update', array(&$this, 'se_ajax_update') );
 
+		// In 2.0.6.4 added a define to allow control of the SE_FILTERS_PRIORITY
+		//https://wordpress.org/support/topic/first-install-problems-in-wordpress-40?replies=3#post-6579114
+		if (defined('SE_FILTERS_PRIORITY'))
+			$SE_FILTERS_PRIORITY = intval(SE_FILTERS_PRIORITY);
+		else {
+			$SE_FILTERS_PRIORITY = 999;
+		}
+		$SE_FILTERS_PRIORITY = apply_filters('se_filters_priority', $SE_FILTERS_PRIORITY);
+
 		// Used to limit the categories displayed on the home page. Simple
-		add_filter('pre_get_posts', array(&$this,'se_filters'), 999);
+		add_filter('pre_get_posts', 			array($this,'se_filters'), $SE_FILTERS_PRIORITY);
 	}
 
 	function admin_init_proc()
@@ -133,7 +142,7 @@ class SimplyExclude
 			add_filter('widget_tag_cloud_args', array(&$this, 'se_widget_tag_cloud_args_proc'));	
 			
 			// Support for Archive widget. This widget will output a month or year archive listing/dropdown of posts
-			add_filter('getarchives_where', array($this, 'se_widget_getarchives_where'), 99, 2);
+			add_filter('getarchives_where', array($this, 'se_widget_getarchives_where'), 99);
 			
 		}
 	}
@@ -2523,19 +2532,13 @@ class SimplyExclude
 		return $args;
 	}
 	
-	function se_widget_getarchives_where($where_sql, $args) {
-		if (is_admin()) return $where;
-		
-		//echo "where_sql[". $where_sql ."]<br />";
-		//echo "args<pre>"; print_r($args); echo "</pre>";
+	function se_widget_getarchives_where($where_sql) {
+
+		if (is_admin()) return $where_sql;
 		
 		$this->se_load_config();
 		
-		//echo "se_cfg<pre>"; print_r($this->se_cfg); echo "</pre>";
 		$action_data = $this->se_get_action_data('is_archive');			
-		//echo "action_data<pre>"; print_r($action_data); echo "</pre>";
-		//die();
-		
 		
 		$post__in = array();
 		$post__not_in = array();
@@ -2545,9 +2548,6 @@ class SimplyExclude
 				if ($key == "post_types") {
 					
 					foreach($key_data as $key_key => $key_key_data) {
-						//echo "key_key[". $key_key ."]<br />";
-						//echo "key_key_data<pre>"; print_r($key_key_data); echo "</pre>";
-						
 						if ($key_key_data['actions'] == 'e') {
 							$post__not_in = array_merge($post__not_in, $key_key_data['terms']);
 							
@@ -2558,13 +2558,9 @@ class SimplyExclude
 				} else if ($key == "taxonomies") {
 					
 					foreach($key_data as $key_key => $key_key_data) {
-						//echo "key_key[". $key_key ."]<br />";
-						//echo "key_key_data<pre>"; print_r($key_key_data); echo "</pre>";
 						if ((isset($key_key_data['terms'])) && (!empty($key_key_data['terms']))) {
 							$posts_ids = get_objects_in_term( $key_key_data['terms'], $key_key );
 							if ( !is_wp_error( $posts_ids ) ) {
-								//echo "posts_ids<pre>"; print_r($posts_ids); echo "</pre>";
-						
 								if ($key_key_data['actions'] == 'e') {
 									$post__not_in = array_merge($post__not_in, $posts_ids);
 								} else if ($key_key_data['actions'] == 'i') {
@@ -2578,15 +2574,11 @@ class SimplyExclude
 		}
 		
 		if (!empty($post__not_in)) {
-			//echo "post__not_in<pre>"; print_r($post__not_in); echo "</pre>";
 			$where_sql .= " AND ID NOT IN(". implode(',', $post__not_in) .") ";
 			
 		} else if (!empty($post__in)) {
-			//echo "post__in<pre>"; print_r($post__in); echo "</pre>";
 			$where_sql .= " AND ID IN(". implode(',', $post__not_in) .") ";
-		}
-		//echo "where_sql[". $where_sql ."]<br />";
-		
+		}		
 		return $where_sql;
 	}
 	
