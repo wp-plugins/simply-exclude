@@ -3,8 +3,8 @@ Contributors: pmenard
 Donate link: http://www.codehooligans.com
 Tags: admin, posts, pages, categories, tags, Post Type, Taxonomy, exclude, include, is_front, is_archive, is_search, is_feed, is_author
 Requires at least: 3.9
-Tested up to: 4,1
-Stable tag: 2.0.6.4
+Tested up to: 4.2
+Stable tag: 2.0.6.6
 License: GPLv2
 License URI: http://www.opensource.org/licenses/GPL-2.0
 
@@ -49,6 +49,12 @@ At the time (version 1.6.1) the plugin only effects Pages included in the tradit
 3. New Help section to answer some of your questions.
 
 == Changelog == 
+
+= 2.0.6.6 =
+- Corrected bug introduced via 2.0.6.4 and 2.0.6.5
+
+= 2.0.6.5 =
+- DO NOT USE. 
 
 = 2.0.6.4 =
 - Corrected issue reported related to Missing argument 2 for SimplyExclude::se_widget_getarchives_where()
